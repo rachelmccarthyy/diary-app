@@ -51,7 +51,7 @@ export default function EntryCard({ entry, searchQuery }: EntryCardProps) {
         <img
           src={thumbnail}
           alt=""
-          className="w-full h-36 object-cover rounded-lg mb-3 border border-stone-100"
+          className="w-full h-72 object-cover rounded-lg mb-3 border border-stone-100"
         />
       )}
 
