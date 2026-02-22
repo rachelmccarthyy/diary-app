@@ -18,12 +18,13 @@ export default function NewEntryPage() {
   const [tags, setTags] = useState<string[]>([]);
   const [images, setImages] = useState<string[]>([]);
   const [spotifyUrl, setSpotifyUrl] = useState<string | undefined>();
+  const [spotifyTitle, setSpotifyTitle] = useState<string | undefined>();
   const [saving, setSaving] = useState(false);
 
   function handleSave() {
     if (!title.trim() && !body.trim()) return;
     setSaving(true);
-    const entry = createEntry({ title: title.trim(), body, mood, tags, images, spotifyUrl });
+    const entry = createEntry({ title: title.trim(), body, mood, tags, images, spotifyUrl, spotifyTitle });
     router.push(`/entry/${entry.id}`);
   }
 
@@ -116,7 +117,11 @@ export default function NewEntryPage() {
           <label className="text-xs font-semibold text-stone-400 uppercase tracking-widest block mb-2">
             Song
           </label>
-          <SpotifyEmbed url={spotifyUrl} onChange={setSpotifyUrl} />
+          <SpotifyEmbed
+            url={spotifyUrl}
+            title={spotifyTitle}
+            onChange={(url, title) => { setSpotifyUrl(url); setSpotifyTitle(title); }}
+          />
         </div>
 
         {/* Save (bottom) */}

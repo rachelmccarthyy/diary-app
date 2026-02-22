@@ -41,7 +41,6 @@ export default function EntryCard({ entry, searchQuery }: EntryCardProps) {
           </h2>
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          {entry.spotifyUrl && <span className="text-xs text-[#1DB954]" title="Has a song">♫</span>}
           <time className="text-xs text-stone-400">{dateStr}</time>
         </div>
       </div>
@@ -57,6 +56,13 @@ export default function EntryCard({ entry, searchQuery }: EntryCardProps) {
 
       {preview && (
         <p className="text-sm text-stone-500 leading-relaxed line-clamp-2 mb-3">{preview}</p>
+      )}
+
+      {entry.spotifyUrl && (
+        <div className="flex items-center gap-1.5 text-xs text-[#1DB954] mb-2">
+          <span>♫</span>
+          <span className="truncate">{entry.spotifyTitle ?? 'Song attached'}</span>
+        </div>
       )}
 
       {entry.tags.length > 0 && (

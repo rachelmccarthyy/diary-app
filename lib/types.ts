@@ -9,6 +9,7 @@ export interface DiaryEntry {
   timezone: string;
   images: string[]; // base64 compressed data URLs
   spotifyUrl?: string; // Spotify embed URL
+  spotifyTitle?: string; // e.g. "Song Name by Artist"
 }
 
 export const MOODS = [

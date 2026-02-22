@@ -29,6 +29,7 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
   const [tags, setTags] = useState<string[]>([]);
   const [images, setImages] = useState<string[]>([]);
   const [spotifyUrl, setSpotifyUrl] = useState<string | undefined>();
+  const [spotifyTitle, setSpotifyTitle] = useState<string | undefined>();
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -49,6 +50,7 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
     setTags(entry.tags);
     setImages(entry.images ?? []);
     setSpotifyUrl(entry.spotifyUrl);
+    setSpotifyTitle(entry.spotifyTitle);
     setEditing(true);
   }
 
@@ -59,7 +61,7 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
   function handleSave() {
     if (!entry) return;
     setSaving(true);
-    const updated = updateEntry(id, { title: title.trim(), body, mood, tags, images, spotifyUrl });
+    const updated = updateEntry(id, { title: title.trim(), body, mood, tags, images, spotifyUrl, spotifyTitle });
     if (updated) setEntry(updated);
     setEditing(false);
     setSaving(false);
@@ -162,7 +164,11 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
             </div>
             <div>
               <label className="text-xs font-semibold text-stone-400 uppercase tracking-widest block mb-2">Song</label>
-              <SpotifyEmbed url={spotifyUrl} onChange={setSpotifyUrl} />
+              <SpotifyEmbed
+                url={spotifyUrl}
+                title={spotifyTitle}
+                onChange={(url, title) => { setSpotifyUrl(url); setSpotifyTitle(title); }}
+              />
             </div>
             <div className="flex justify-end pb-8">
               <button

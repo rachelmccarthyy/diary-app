@@ -4,7 +4,8 @@ import { useState } from 'react';
 
 interface SpotifyEmbedProps {
   url?: string;
-  onChange: (url: string | undefined) => void;
+  title?: string;
+  onChange: (url: string | undefined, title?: string) => void;
 }
 
 function parseSpotifyEmbedUrl(input: string): string | null {
@@ -20,19 +21,36 @@ function parseSpotifyEmbedUrl(input: string): string | null {
   }
 }
 
-export default function SpotifyEmbed({ url, onChange }: SpotifyEmbedProps) {
+async function fetchSpotifyTitle(spotifyUrl: string): Promise<string | undefined> {
+  try {
+    const res = await fetch(
+      `https://open.spotify.com/oembed?url=${encodeURIComponent(spotifyUrl)}`
+    );
+    if (!res.ok) return undefined;
+    const data = await res.json();
+    return data.title as string;
+  } catch {
+    return undefined;
+  }
+}
+
+export default function SpotifyEmbed({ url, title, onChange }: SpotifyEmbedProps) {
   const [input, setInput] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  function handleAdd() {
+  async function handleAdd() {
     const embedUrl = parseSpotifyEmbedUrl(input);
     if (!embedUrl) {
       setError('Paste a valid Spotify track, album, playlist, or episode URL');
       return;
     }
     setError('');
+    setLoading(true);
+    const trackTitle = await fetchSpotifyTitle(input.trim());
+    setLoading(false);
     setInput('');
-    onChange(embedUrl);
+    onChange(embedUrl, trackTitle);
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -45,6 +63,11 @@ export default function SpotifyEmbed({ url, onChange }: SpotifyEmbedProps) {
   if (url) {
     return (
       <div className="space-y-2">
+        {title && (
+          <p className="text-xs font-medium text-[#1DB954] flex items-center gap-1">
+            <span>♫</span> {title}
+          </p>
+        )}
         <iframe
           src={url}
           width="100%"
@@ -56,7 +79,7 @@ export default function SpotifyEmbed({ url, onChange }: SpotifyEmbedProps) {
         />
         <button
           type="button"
-          onClick={() => onChange(undefined)}
+          onClick={() => onChange(undefined, undefined)}
           className="text-xs text-stone-400 hover:text-red-400 transition-colors"
         >
           Remove song
@@ -82,10 +105,10 @@ export default function SpotifyEmbed({ url, onChange }: SpotifyEmbedProps) {
         <button
           type="button"
           onClick={handleAdd}
-          disabled={!input.trim()}
+          disabled={!input.trim() || loading}
           className="px-3 py-2 bg-[#1DB954] text-white text-sm font-semibold rounded-lg hover:bg-[#1aa34a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 whitespace-nowrap"
         >
-          ♫ Add
+          {loading ? '...' : '♫ Add'}
         </button>
       </div>
       {error && <p className="text-xs text-red-400">{error}</p>}
