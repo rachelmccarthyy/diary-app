@@ -12,6 +12,7 @@ import TagInput from '@/components/TagInput';
 import MarkdownEditor from '@/components/MarkdownEditor';
 import ImageUploader from '@/components/ImageUploader';
 import SpotifyEmbed from '@/components/SpotifyEmbed';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function EntryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -22,7 +23,6 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
   const [notFound, setNotFound] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
-  // Edit state
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [mood, setMood] = useState('');
@@ -35,11 +35,8 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
 
   useEffect(() => {
     const found = getEntry(id);
-    if (!found) {
-      setNotFound(true);
-    } else {
-      setEntry(found);
-    }
+    if (!found) setNotFound(true);
+    else setEntry(found);
   }, [id]);
 
   function enterEdit() {
@@ -52,10 +49,6 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
     setSpotifyUrl(entry.spotifyUrl);
     setSpotifyTitle(entry.spotifyTitle);
     setEditing(true);
-  }
-
-  function cancelEdit() {
-    setEditing(false);
   }
 
   function handleSave() {
@@ -74,10 +67,10 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
 
   if (notFound) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--th-bg)' }}>
         <div className="text-center">
           <p className="text-4xl mb-4">📭</p>
-          <h2 className="text-lg font-semibold text-stone-600 mb-2">Entry not found</h2>
+          <h2 className="text-lg font-semibold mb-2" style={{ color: 'var(--th-text)' }}>Entry not found</h2>
           <Link href="/" className="text-pink-600 hover:underline text-sm">Back to diary</Link>
         </div>
       </div>
@@ -92,17 +85,18 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
     : null;
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
+    <div className="min-h-screen" style={{ background: 'var(--th-bg)' }}>
       {/* Header */}
-      <header className="sticky top-0 z-10 backdrop-blur-sm bg-[#FDFBF7]/90 border-b border-stone-200">
+      <header className="sticky top-0 z-10 backdrop-blur-sm border-b" style={{ background: 'var(--th-header-bg)', borderColor: 'var(--th-border)' }}>
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
-          <Link href="/" className="text-sm text-stone-500 hover:text-stone-800 transition-colors flex items-center gap-1">
+          <Link href="/" className="text-sm transition-colors flex items-center gap-1" style={{ color: 'var(--th-muted)' }}>
             ← Back
           </Link>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             {editing ? (
               <>
-                <button onClick={cancelEdit} className="px-3 py-1.5 text-sm text-stone-500 hover:text-stone-800 transition-colors">
+                <button onClick={() => setEditing(false)} className="px-3 py-1.5 text-sm transition-colors" style={{ color: 'var(--th-muted)' }}>
                   Cancel
                 </button>
                 <button
@@ -117,7 +111,8 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
               <>
                 <button
                   onClick={enterEdit}
-                  className="px-3 py-1.5 text-sm text-stone-500 hover:text-stone-800 border border-stone-200 rounded-lg hover:border-stone-300 transition-all"
+                  className="px-3 py-1.5 text-sm rounded-lg border transition-all hover:border-pink-300"
+                  style={{ color: 'var(--th-muted)', borderColor: 'var(--th-border)' }}
                 >
                   Edit
                 </button>
@@ -135,7 +130,6 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
 
       <main className="max-w-2xl mx-auto px-4 py-6">
         {editing ? (
-          /* ── Edit mode ── */
           <div className="space-y-5">
             <input
               type="text"
@@ -143,31 +137,32 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
               onChange={(e) => { const v = e.target.value; setTitle(v ? v[0].toUpperCase() + v.slice(1) : v); }}
               placeholder="Entry title..."
               autoFocus
-              className="w-full text-2xl font-bold text-stone-800 placeholder:text-stone-300 bg-transparent border-none outline-none"
+              className="w-full text-2xl font-bold bg-transparent border-none outline-none placeholder:opacity-40"
+              style={{ color: 'var(--th-text)' }}
             />
-            <hr className="border-stone-200" />
+            <hr style={{ borderColor: 'var(--th-border)' }} />
             <div>
-              <label className="text-xs font-semibold text-stone-400 uppercase tracking-widest block mb-2">Mood</label>
+              <label className="text-xs font-semibold uppercase tracking-widest block mb-2" style={{ color: 'var(--th-faint)' }}>Mood</label>
               <MoodPicker value={mood} onChange={setMood} />
             </div>
             <div>
-              <label className="text-xs font-semibold text-stone-400 uppercase tracking-widest block mb-2">Tags</label>
+              <label className="text-xs font-semibold uppercase tracking-widest block mb-2" style={{ color: 'var(--th-faint)' }}>Tags</label>
               <TagInput tags={tags} onChange={setTags} />
             </div>
             <div>
-              <label className="text-xs font-semibold text-stone-400 uppercase tracking-widest block mb-2">Entry</label>
+              <label className="text-xs font-semibold uppercase tracking-widest block mb-2" style={{ color: 'var(--th-faint)' }}>Entry</label>
               <MarkdownEditor value={body} onChange={setBody} />
             </div>
             <div>
-              <label className="text-xs font-semibold text-stone-400 uppercase tracking-widest block mb-2">Images</label>
+              <label className="text-xs font-semibold uppercase tracking-widest block mb-2" style={{ color: 'var(--th-faint)' }}>Images</label>
               <ImageUploader images={images} onChange={setImages} />
             </div>
             <div>
-              <label className="text-xs font-semibold text-stone-400 uppercase tracking-widest block mb-2">Song</label>
+              <label className="text-xs font-semibold uppercase tracking-widest block mb-2" style={{ color: 'var(--th-faint)' }}>Song</label>
               <SpotifyEmbed
                 url={spotifyUrl}
                 title={spotifyTitle}
-                onChange={(url, title) => { setSpotifyUrl(url); setSpotifyTitle(title); }}
+                onChange={(url, t) => { setSpotifyUrl(url); setSpotifyTitle(t); }}
               />
             </div>
             <div className="flex justify-end pb-8">
@@ -181,24 +176,20 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
             </div>
           </div>
         ) : (
-          /* ── View mode ── */
           <div className="space-y-4">
-            {/* Title + mood */}
             <div className="flex items-start gap-3">
               {entry.mood && <span className="text-3xl mt-1">{entry.mood}</span>}
-              <h1 className="text-2xl font-bold text-stone-800 leading-tight">
+              <h1 className="text-2xl font-bold leading-tight" style={{ color: 'var(--th-text)' }}>
                 {entry.title || 'Untitled'}
               </h1>
             </div>
 
-            {/* Date */}
-            <div className="text-xs text-stone-400 space-y-0.5">
+            <div className="text-xs space-y-0.5" style={{ color: 'var(--th-faint)' }}>
               <p>Written {dateStr}</p>
               {updatedStr && <p className="italic">Edited {updatedStr}</p>}
-              <p className="text-stone-300">{entry.timezone}</p>
+              <p>{entry.timezone}</p>
             </div>
 
-            {/* Tags */}
             {entry.tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {entry.tags.map((tag) => (
@@ -209,9 +200,8 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
               </div>
             )}
 
-            <hr className="border-stone-200" />
+            <hr style={{ borderColor: 'var(--th-border)' }} />
 
-            {/* Spotify embed */}
             {entry.spotifyUrl && (
               <iframe
                 src={entry.spotifyUrl}
@@ -224,16 +214,14 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
               />
             )}
 
-            {/* Body */}
             <div className="prose max-w-none">
               {entry.body ? (
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{entry.body}</ReactMarkdown>
               ) : (
-                <p className="text-stone-400 italic">No content.</p>
+                <p className="italic" style={{ color: 'var(--th-faint)' }}>No content.</p>
               )}
             </div>
 
-            {/* Images */}
             {entry.images?.length > 0 && (
               <div className="grid grid-cols-2 gap-2 pt-2 pb-12">
                 {entry.images.map((src, i) => (
@@ -243,7 +231,8 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
                     src={src}
                     alt={`Image ${i + 1}`}
                     onClick={() => setLightboxSrc(src)}
-                    className="w-full rounded-xl border border-stone-200 object-cover cursor-zoom-in hover:opacity-95 transition-opacity"
+                    className="w-full rounded-xl border object-cover cursor-zoom-in hover:opacity-95 transition-opacity"
+                    style={{ borderColor: 'var(--th-border)' }}
                   />
                 ))}
               </div>
@@ -252,40 +241,32 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
         )}
       </main>
 
-      {/* Lightbox */}
       {lightboxSrc && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm cursor-zoom-out p-4"
           onClick={() => setLightboxSrc(null)}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={lightboxSrc}
-            alt="Full size"
-            className="max-w-full max-h-full rounded-xl object-contain shadow-2xl"
-          />
+          <img src={lightboxSrc} alt="Full size" className="max-w-full max-h-full rounded-xl object-contain shadow-2xl" />
         </div>
       )}
 
-      {/* Delete confirmation modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl p-6 mx-4 max-w-sm w-full">
-            <h3 className="text-base font-semibold text-stone-800 mb-2">Delete this entry?</h3>
-            <p className="text-sm text-stone-500 mb-5">
+          <div className="rounded-2xl shadow-xl p-6 mx-4 max-w-sm w-full border" style={{ background: 'var(--th-card)', borderColor: 'var(--th-border)' }}>
+            <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--th-text)' }}>Delete this entry?</h3>
+            <p className="text-sm mb-5" style={{ color: 'var(--th-muted)' }}>
               &ldquo;{entry.title || 'Untitled'}&rdquo; will be permanently deleted.
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="px-4 py-2 text-sm text-stone-600 border border-stone-200 rounded-lg hover:bg-stone-50 transition-all"
+                className="px-4 py-2 text-sm rounded-lg border transition-all"
+                style={{ color: 'var(--th-muted)', borderColor: 'var(--th-border)' }}
               >
                 Cancel
               </button>
-              <button
-                onClick={handleDelete}
-                className="px-4 py-2 text-sm text-white bg-red-500 rounded-lg hover:bg-red-600 transition-all"
-              >
+              <button onClick={handleDelete} className="px-4 py-2 text-sm text-white bg-red-500 rounded-lg hover:bg-red-600 transition-all">
                 Delete
               </button>
             </div>

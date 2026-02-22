@@ -9,6 +9,7 @@ import TagInput from '@/components/TagInput';
 import MarkdownEditor from '@/components/MarkdownEditor';
 import ImageUploader from '@/components/ImageUploader';
 import SpotifyEmbed from '@/components/SpotifyEmbed';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function NewEntryPage() {
   const router = useRouter();
@@ -31,92 +32,70 @@ export default function NewEntryPage() {
   const isEmpty = !title.trim() && !body.trim();
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
-      {/* Header */}
-      <header className="sticky top-0 z-10 backdrop-blur-sm bg-[#FDFBF7]/90 border-b border-stone-200">
+    <div className="min-h-screen" style={{ background: 'var(--th-bg)' }}>
+      <header className="sticky top-0 z-10 backdrop-blur-sm border-b" style={{ background: 'var(--th-header-bg)', borderColor: 'var(--th-border)' }}>
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
-          <Link
-            href="/"
-            className="text-sm text-stone-500 hover:text-stone-800 transition-colors flex items-center gap-1"
-          >
+          <Link href="/" className="text-sm transition-colors flex items-center gap-1" style={{ color: 'var(--th-muted)' }}>
             ← Back
           </Link>
-          <h1 className="text-sm font-semibold text-stone-700">New Entry</h1>
-          <button
-            onClick={handleSave}
-            disabled={isEmpty || saving}
-            className="px-4 py-2 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            {saving ? 'Saving...' : 'Save'}
-          </button>
+          <h1 className="text-sm font-semibold" style={{ color: 'var(--th-text)' }}>New Entry</h1>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <button
+              onClick={handleSave}
+              disabled={isEmpty || saving}
+              className="px-4 py-2 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              {saving ? 'Saving...' : 'Save'}
+            </button>
+          </div>
         </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-5">
-        {/* Title */}
         <input
           type="text"
           value={title}
           onChange={(e) => { const v = e.target.value; setTitle(v ? v[0].toUpperCase() + v.slice(1) : v); }}
           placeholder="Entry title..."
           autoFocus
-          className="w-full text-2xl font-bold text-stone-800 placeholder:text-stone-300 bg-transparent border-none outline-none"
+          className="w-full text-2xl font-bold bg-transparent border-none outline-none placeholder:opacity-40"
+          style={{ color: 'var(--th-text)' }}
         />
 
-        {/* Date / Timezone info */}
-        <p className="text-xs text-stone-400">
+        <p className="text-xs" style={{ color: 'var(--th-faint)' }}>
           {new Intl.DateTimeFormat('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true,
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+            hour: 'numeric', minute: '2-digit', hour12: true,
             timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           }).format(new Date())}{' '}
           &middot; {Intl.DateTimeFormat().resolvedOptions().timeZone}
         </p>
 
-        <hr className="border-stone-200" />
+        <hr style={{ borderColor: 'var(--th-border)' }} />
 
-        {/* Mood */}
         <div>
-          <label className="text-xs font-semibold text-stone-400 uppercase tracking-widest block mb-2">
-            Mood
-          </label>
+          <label className="text-xs font-semibold uppercase tracking-widest block mb-2" style={{ color: 'var(--th-faint)' }}>Mood</label>
           <MoodPicker value={mood} onChange={setMood} />
         </div>
 
-        {/* Tags */}
         <div>
-          <label className="text-xs font-semibold text-stone-400 uppercase tracking-widest block mb-2">
-            Tags
-          </label>
+          <label className="text-xs font-semibold uppercase tracking-widest block mb-2" style={{ color: 'var(--th-faint)' }}>Tags</label>
           <TagInput tags={tags} onChange={setTags} />
         </div>
 
-        {/* Body */}
         <div>
-          <label className="text-xs font-semibold text-stone-400 uppercase tracking-widest block mb-2">
-            Entry
-          </label>
+          <label className="text-xs font-semibold uppercase tracking-widest block mb-2" style={{ color: 'var(--th-faint)' }}>Entry</label>
           <MarkdownEditor value={body} onChange={setBody} />
         </div>
 
-        {/* Images */}
         <div>
-          <label className="text-xs font-semibold text-stone-400 uppercase tracking-widest block mb-2">
-            Images
-          </label>
+          <label className="text-xs font-semibold uppercase tracking-widest block mb-2" style={{ color: 'var(--th-faint)' }}>Images</label>
           <ImageUploader images={images} onChange={setImages} />
         </div>
 
-        {/* Spotify */}
         <div>
-          <label className="text-xs font-semibold text-stone-400 uppercase tracking-widest block mb-2">
-            Song
-          </label>
+          <label className="text-xs font-semibold uppercase tracking-widest block mb-2" style={{ color: 'var(--th-faint)' }}>Song</label>
           <SpotifyEmbed
             url={spotifyUrl}
             title={spotifyTitle}
@@ -124,7 +103,6 @@ export default function NewEntryPage() {
           />
         </div>
 
-        {/* Save (bottom) */}
         <div className="flex justify-end pt-2 pb-8">
           <button
             onClick={handleSave}

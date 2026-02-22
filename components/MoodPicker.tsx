@@ -16,13 +16,8 @@ export default function MoodPicker({ value, onChange }: MoodPickerProps) {
           type="button"
           title={label}
           onClick={() => onChange(emoji)}
-          className={`
-            flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border transition-all
-            ${value === emoji
-              ? 'bg-pink-50 border-pink-400 text-pink-700 shadow-sm'
-              : 'bg-white border-stone-200 text-stone-600 hover:border-stone-300 hover:bg-stone-50'
-            }
-          `}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border transition-all ${value === emoji ? 'bg-pink-50 border-pink-400 text-pink-700 shadow-sm' : 'hover:border-pink-200'}`}
+          style={value !== emoji ? { background: 'var(--th-card)', borderColor: 'var(--th-border)', color: 'var(--th-muted)' } : {}}
         >
           <span className="text-base">{emoji}</span>
           <span>{label}</span>

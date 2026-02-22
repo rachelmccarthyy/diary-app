@@ -29,10 +29,7 @@ async function compressImage(file: File): Promise<string> {
       URL.revokeObjectURL(url);
       resolve(canvas.toDataURL('image/jpeg', QUALITY));
     };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Failed to load image'));
-    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Failed to load image')); };
     img.src = url;
   });
 }
@@ -43,8 +40,7 @@ export default function ImageUploader({ images, onChange }: ImageUploaderProps) 
   async function handleFiles(files: FileList) {
     const remaining = MAX_IMAGES - images.length;
     if (remaining <= 0) return;
-    const toProcess = Array.from(files).slice(0, remaining);
-    const compressed = await Promise.all(toProcess.map(compressImage));
+    const compressed = await Promise.all(Array.from(files).slice(0, remaining).map(compressImage));
     onChange([...images, ...compressed]);
   }
 
@@ -58,26 +54,17 @@ export default function ImageUploader({ images, onChange }: ImageUploaderProps) 
     if (e.dataTransfer.files) handleFiles(e.dataTransfer.files);
   }
 
-  function remove(index: number) {
-    onChange(images.filter((_, i) => i !== index));
-  }
-
   return (
     <div className="space-y-3">
-      {/* Preview grid */}
       {images.length > 0 && (
         <div className="grid grid-cols-3 gap-2">
           {images.map((src, i) => (
             <div key={i} className="relative group aspect-square">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={src}
-                alt={`Attached image ${i + 1}`}
-                className="w-full h-full object-cover rounded-lg border border-stone-200"
-              />
+              <img src={src} alt={`Attached image ${i + 1}`} className="w-full h-full object-cover rounded-lg border" style={{ borderColor: 'var(--th-border)' }} />
               <button
                 type="button"
-                onClick={() => remove(i)}
+                onClick={() => onChange(images.filter((_, j) => j !== i))}
                 className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center bg-black/60 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
               >
                 ×
@@ -87,30 +74,21 @@ export default function ImageUploader({ images, onChange }: ImageUploaderProps) 
         </div>
       )}
 
-      {/* Drop zone */}
       {images.length < MAX_IMAGES && (
         <div
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
           onClick={() => inputRef.current?.click()}
-          className="flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 border-dashed border-stone-200 rounded-lg text-stone-400 hover:border-pink-300 hover:text-pink-400 cursor-pointer transition-all"
+          className="flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 border-dashed rounded-lg cursor-pointer hover:border-pink-300 hover:text-pink-400 transition-all"
+          style={{ borderColor: 'var(--th-border)', color: 'var(--th-faint)' }}
         >
           <span className="text-2xl">🖼️</span>
           <p className="text-xs text-center">
             Drop images here or <span className="underline">click to upload</span>
             <br />
-            <span className="text-stone-300">
-              {images.length}/{MAX_IMAGES} &middot; compressed automatically
-            </span>
+            <span style={{ color: 'var(--th-faint)' }}>{images.length}/{MAX_IMAGES} &middot; compressed automatically</span>
           </p>
-          <input
-            ref={inputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={handleChange}
-          />
+          <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleChange} />
         </div>
       )}
     </div>
