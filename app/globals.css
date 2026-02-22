@@ -1,26 +1,63 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #FDFBF7;
+  --foreground: #1c1917;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
+
+/* Prose styles for markdown rendering */
+.prose h1, .prose h2, .prose h3, .prose h4 {
+  color: #1c1917;
+  font-weight: 600;
+  margin-top: 1.25em;
+  margin-bottom: 0.5em;
+}
+.prose h1 { font-size: 1.5rem; }
+.prose h2 { font-size: 1.25rem; }
+.prose h3 { font-size: 1.1rem; }
+.prose p { margin-bottom: 0.75em; line-height: 1.7; color: #44403c; }
+.prose ul, .prose ol { padding-left: 1.5em; margin-bottom: 0.75em; }
+.prose li { margin-bottom: 0.25em; color: #44403c; }
+.prose code {
+  background: #f5f4ef;
+  border: 1px solid #e7e5e4;
+  border-radius: 4px;
+  padding: 0.1em 0.4em;
+  font-size: 0.875em;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  color: #7c3aed;
+}
+.prose pre {
+  background: #1c1917;
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+  margin-bottom: 1em;
+}
+.prose pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #e7e5e4;
+  font-size: 0.85rem;
+}
+.prose blockquote {
+  border-left: 3px solid #c4b5fd;
+  padding-left: 1em;
+  color: #6b7280;
+  font-style: italic;
+  margin: 1em 0;
+}
+.prose a { color: #4f46e5; text-decoration: underline; }
+.prose strong { font-weight: 600; color: #1c1917; }
+.prose hr { border-color: #e7e5e4; margin: 1.5em 0; }
+.prose table { width: 100%; border-collapse: collapse; margin-bottom: 1em; }
+.prose th { background: #f5f4ef; padding: 0.5em 0.75em; text-align: left; font-weight: 600; border: 1px solid #e7e5e4; }
+.prose td { padding: 0.5em 0.75em; border: 1px solid #e7e5e4; color: #44403c; }
