@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Barlow_Condensed, IBM_Plex_Mono } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/react';
 import AuthProvider from '@/components/AuthProvider';
 import './globals.css';
 
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-screen antialiased">
         <AuthProvider>{children}</AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
