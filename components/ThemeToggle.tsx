@@ -3,15 +3,21 @@
 import { useEffect, useState } from 'react';
 
 const DARK: Record<string, string> = {
-  '--th-bg': '#181715',
-  '--th-card': '#221f1d',
-  '--th-toolbar': '#2a2826',
-  '--th-border': '#3d3a36',
-  '--th-text': '#f0eeea',
-  '--th-muted': '#a8a29e',
-  '--th-faint': '#57534e',
-  '--th-input': '#1c1917',
-  '--th-header-bg': 'rgba(24, 23, 21, 0.92)',
+  '--th-bg': '#0a0a0a',
+  '--th-card': '#0a0a0a',
+  '--th-toolbar': '#141414',
+  '--th-border': '#222222',
+  '--th-border-strong': '#333333',
+  '--th-text': '#f0f0f0',
+  '--th-muted': '#888888',
+  '--th-faint': '#444444',
+  '--th-input': '#0a0a0a',
+  '--th-header-bg': 'rgba(10, 10, 10, 0.97)',
+  '--th-accent': '#d4587a',
+  '--th-accent-hover': '#e06e8c',
+  '--th-rule': '#f0f0f0',
+  '--th-inv-bg': '#f0f0f0',
+  '--th-inv-text': '#0a0a0a',
 };
 
 function applyTheme(dark: boolean) {

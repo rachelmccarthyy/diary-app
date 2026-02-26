@@ -1,81 +1,157 @@
 @import "tailwindcss";
 
-/* Light mode defaults — overridden by JS injection for dark mode */
+/* ── i-D inspired palette: stark black/white ────────────────── */
 :root {
-  --th-bg: #FDFBF7;
+  --th-bg: #ffffff;
   --th-card: #ffffff;
-  --th-toolbar: #f8f7f4;
-  --th-border: #e5e3df;
-  --th-text: #1c1917;
-  --th-muted: #78716c;
-  --th-faint: #a8a29e;
+  --th-toolbar: #f5f5f5;
+  --th-border: #e8e8e8;
+  --th-border-strong: #cccccc;
+  --th-text: #0a0a0a;
+  --th-muted: #666666;
+  --th-faint: #aaaaaa;
   --th-input: #ffffff;
-  --th-header-bg: rgba(253, 251, 247, 0.92);
+  --th-header-bg: rgba(255, 255, 255, 0.97);
+  --th-accent: #b5245a;
+  --th-accent-hover: #8f1a46;
+  --th-rule: #0a0a0a;
+  --th-inv-bg: #0a0a0a;
+  --th-inv-text: #ffffff;
 }
 
-/* OS-level dark mode (no toggle needed) — also overridden by JS when toggled */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --th-bg: #181715;
-    --th-card: #221f1d;
-    --th-toolbar: #2a2826;
-    --th-border: #3d3a36;
-    --th-text: #f0eeea;
-    --th-muted: #a8a29e;
-    --th-faint: #57534e;
-    --th-input: #1c1917;
-    --th-header-bg: rgba(24, 23, 21, 0.92);
+    --th-bg: #0a0a0a;
+    --th-card: #0a0a0a;
+    --th-toolbar: #141414;
+    --th-border: #222222;
+    --th-border-strong: #333333;
+    --th-text: #f0f0f0;
+    --th-muted: #888888;
+    --th-faint: #444444;
+    --th-input: #0a0a0a;
+    --th-header-bg: rgba(10, 10, 10, 0.97);
+    --th-accent: #d4587a;
+    --th-accent-hover: #e06e8c;
+    --th-rule: #f0f0f0;
+    --th-inv-bg: #f0f0f0;
+    --th-inv-text: #0a0a0a;
   }
 }
 
+/* ── Remap Tailwind pink → editorial rose ───────────────────── */
+@theme {
+  --color-pink-50: #fdf0f5;
+  --color-pink-100: #faddea;
+  --color-pink-200: #f5b8ce;
+  --color-pink-300: #ec87ae;
+  --color-pink-400: #de5588;
+  --color-pink-500: #cb3070;
+  --color-pink-600: #b5245a;
+  --color-pink-700: #8f1a46;
+  --color-pink-800: #6b1234;
+  --color-pink-900: #470b22;
+}
+
+/* ── Base ───────────────────────────────────────────────────── */
 body {
   background: var(--th-bg);
   color: var(--th-text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   transition: background 0.2s ease, color 0.2s ease;
 }
 
-/* Prose styles for markdown rendering */
+/* Display / headline font (Barlow Condensed via CSS var) */
+.font-display {
+  font-family: var(--font-display, 'Helvetica Neue', Helvetica, Arial, sans-serif);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
+}
+
+/* Letter Gothic / monospaced for metadata labels (matching i-D's New Letter Gothic) */
+.font-mono-editorial {
+  font-family: var(--font-mono-editorial, 'Courier New', monospace);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Inverted section header pill (black bg, white text) */
+.section-header {
+  background: var(--th-inv-bg);
+  color: var(--th-inv-text);
+  padding: 0.4rem 1rem;
+  font-family: var(--font-display, 'Helvetica Neue', Helvetica, Arial, sans-serif);
+  font-weight: 800;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* ── Sidebar scrollbar ─────────────────────────────────────── */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--th-border) transparent;
+}
+.sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: var(--th-border);
+  border-radius: 4px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--th-faint);
+}
+
+/* ── Prose ──────────────────────────────────────────────────── */
 .prose h1, .prose h2, .prose h3, .prose h4 {
   color: var(--th-text);
-  font-weight: 600;
-  margin-top: 1.25em;
-  margin-bottom: 0.5em;
+  font-family: var(--font-display, 'Helvetica Neue', Helvetica, Arial, sans-serif);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  margin-top: 1.5em;
+  margin-bottom: 0.4em;
+  line-height: 1.05;
 }
-.prose h1 { font-size: 1.5rem; }
-.prose h2 { font-size: 1.25rem; }
-.prose h3 { font-size: 1.1rem; }
-.prose p { margin-bottom: 0.75em; line-height: 1.7; color: var(--th-muted); }
+.prose h1 { font-size: 2rem; }
+.prose h2 { font-size: 1.5rem; }
+.prose h3 { font-size: 1.15rem; }
+.prose p { margin-bottom: 0.85em; line-height: 1.7; color: var(--th-muted); }
 .prose ul, .prose ol { padding-left: 1.5em; margin-bottom: 0.75em; }
-.prose li { margin-bottom: 0.25em; color: var(--th-muted); }
+.prose li { margin-bottom: 0.3em; color: var(--th-muted); }
 .prose code {
-  background: var(--th-border);
+  background: var(--th-toolbar);
   border: 1px solid var(--th-border);
-  border-radius: 4px;
-  padding: 0.1em 0.4em;
+  padding: 0.1em 0.35em;
   font-size: 0.875em;
   font-family: 'SF Mono', 'Fira Code', monospace;
-  color: #a78bfa;
+  color: var(--th-accent);
 }
 .prose pre {
-  background: #0f0e0d;
-  border-radius: 8px;
+  background: #000;
   padding: 1rem;
   overflow-x: auto;
   margin-bottom: 1em;
 }
 .prose pre code { background: none; border: none; padding: 0; color: #e7e5e4; font-size: 0.85rem; }
 .prose blockquote {
-  border-left: 3px solid #c4b5fd;
+  border-left: 4px solid var(--th-text);
   padding-left: 1em;
   color: var(--th-muted);
   font-style: italic;
-  margin: 1em 0;
+  margin: 1.25em 0;
 }
-.prose a { color: #ec4899; text-decoration: underline; }
-.prose strong { font-weight: 600; color: var(--th-text); }
+.prose a { color: var(--th-accent); text-decoration: underline; }
+.prose strong { font-weight: 700; color: var(--th-text); }
 .prose hr { border-color: var(--th-border); margin: 1.5em 0; }
 .prose table { width: 100%; border-collapse: collapse; margin-bottom: 1em; }
-.prose th { background: var(--th-toolbar); padding: 0.5em 0.75em; text-align: left; font-weight: 600; border: 1px solid var(--th-border); color: var(--th-text); }
+.prose th { background: var(--th-inv-bg); color: var(--th-inv-text); padding: 0.5em 0.75em; text-align: left; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.75rem; border: 1px solid var(--th-border); }
 .prose td { padding: 0.5em 0.75em; border: 1px solid var(--th-border); color: var(--th-muted); }

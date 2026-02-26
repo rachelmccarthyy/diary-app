@@ -1,27 +1,34 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { DiaryEntry } from '@/lib/types';
-import { getEntry, updateEntry, deleteEntry, formatEntryDate } from '@/lib/storage';
+import { getEntry, updateEntry, deleteEntry, formatEntryDate } from '@/lib/db';
+import { getLogsForEntry, getMediaItem, createMediaLog, deleteLogsForEntry } from '@/lib/mediaDb';
+import { MediaItem, MEDIA_TYPE_CONFIG } from '@/lib/mediaTypes';
+import { useAuth } from '@/components/AuthProvider';
+import AuthGuard from '@/components/AuthGuard';
 import MoodPicker from '@/components/MoodPicker';
 import TagInput from '@/components/TagInput';
 import MarkdownEditor from '@/components/MarkdownEditor';
 import ImageUploader from '@/components/ImageUploader';
 import SpotifyEmbed from '@/components/SpotifyEmbed';
+import MediaPicker from '@/components/MediaPicker';
 import ThemeToggle from '@/components/ThemeToggle';
 
-export default function EntryPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+function EntryContent({ id }: { id: string }) {
+  const { user } = useAuth();
   const router = useRouter();
 
   const [entry, setEntry] = useState<DiaryEntry | null>(null);
   const [editing, setEditing] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [linkedMedia, setLinkedMedia] = useState<MediaItem[]>([]);
 
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -30,14 +37,37 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
   const [images, setImages] = useState<string[]>([]);
   const [spotifyUrl, setSpotifyUrl] = useState<string | undefined>();
   const [spotifyTitle, setSpotifyTitle] = useState<string | undefined>();
+  const [editLinkedMediaIds, setEditLinkedMediaIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  useEffect(() => {
-    const found = getEntry(id);
-    if (!found) setNotFound(true);
-    else setEntry(found);
+  const loadEntry = useCallback(async () => {
+    try {
+      const found = await getEntry(id);
+      if (!found) { setNotFound(true); return; }
+
+      // Auto-reveal time capsules past their date
+      if (found.isTimeCapsule && !found.isRevealed && found.revealAt && new Date(found.revealAt) <= new Date()) {
+        const revealed = await updateEntry(id, { isRevealed: true });
+        setEntry(revealed);
+      } else {
+        setEntry(found);
+      }
+
+      const logs = await getLogsForEntry(id);
+      const media = await Promise.all(logs.map((l) => getMediaItem(l.media_id)));
+      setLinkedMedia(media.filter((m): m is MediaItem => m !== null));
+    } catch (err) {
+      console.error('Failed to load entry:', err);
+      setNotFound(true);
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => {
+    loadEntry();
+  }, [loadEntry]);
 
   function enterEdit() {
     if (!entry) return;
@@ -48,28 +78,55 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
     setImages(entry.images ?? []);
     setSpotifyUrl(entry.spotifyUrl);
     setSpotifyTitle(entry.spotifyTitle);
+    setEditLinkedMediaIds(linkedMedia.map((m) => m.id));
     setEditing(true);
   }
 
-  function handleSave() {
-    if (!entry) return;
+  async function handleSave() {
+    if (!entry || !user) return;
     setSaving(true);
-    const updated = updateEntry(id, { title: title.trim(), body, mood, tags, images, spotifyUrl, spotifyTitle });
-    if (updated) setEntry(updated);
-    setEditing(false);
-    setSaving(false);
+    try {
+      const updated = await updateEntry(id, { title: title.trim(), body, mood, tags, images, spotifyUrl, spotifyTitle });
+      setEntry(updated);
+      // Update media logs
+      await deleteLogsForEntry(id);
+      await Promise.all(editLinkedMediaIds.map((mediaId) => createMediaLog(user.id, mediaId, id)));
+      const logs = await getLogsForEntry(id);
+      const media = await Promise.all(logs.map((l) => getMediaItem(l.media_id)));
+      setLinkedMedia(media.filter((m): m is MediaItem => m !== null));
+      setEditing(false);
+    } catch (err) {
+      console.error('Failed to save:', err);
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function handleDelete() {
-    deleteEntry(id);
-    router.push('/');
+  async function handleDelete() {
+    try {
+      await deleteEntry(id);
+      router.push('/');
+    } catch (err) {
+      console.error('Failed to delete:', err);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--th-bg)' }}>
+        <div
+          className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin"
+          style={{ borderColor: 'var(--th-faint)', borderTopColor: 'transparent' }}
+        />
+      </div>
+    );
   }
 
   if (notFound) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--th-bg)' }}>
         <div className="text-center">
-          <p className="text-4xl mb-4">📭</p>
+          <p className="font-display text-3xl mb-4" style={{ color: 'var(--th-border)' }}>—</p>
           <h2 className="text-lg font-semibold mb-2" style={{ color: 'var(--th-text)' }}>Entry not found</h2>
           <Link href="/" className="text-pink-600 hover:underline text-sm">Back to diary</Link>
         </div>
@@ -79,6 +136,7 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
 
   if (!entry) return null;
 
+  const isLocked = entry.isTimeCapsule && !entry.isRevealed && entry.revealAt && new Date(entry.revealAt) > new Date();
   const dateStr = formatEntryDate(entry.createdAt, entry.timezone);
   const updatedStr = entry.updatedAt !== entry.createdAt
     ? formatEntryDate(entry.updatedAt, entry.timezone)
@@ -86,7 +144,6 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--th-bg)' }}>
-      {/* Header */}
       <header className="sticky top-0 z-10 backdrop-blur-sm border-b" style={{ background: 'var(--th-header-bg)', borderColor: 'var(--th-border)' }}>
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
           <Link href="/" className="text-sm transition-colors flex items-center gap-1" style={{ color: 'var(--th-muted)' }}>
@@ -94,20 +151,7 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
           </Link>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            {editing ? (
-              <>
-                <button onClick={() => setEditing(false)} className="px-3 py-1.5 text-sm transition-colors" style={{ color: 'var(--th-muted)' }}>
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="px-4 py-2 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 disabled:opacity-40 transition-colors"
-                >
-                  {saving ? 'Saving...' : 'Save'}
-                </button>
-              </>
-            ) : (
+            {!isLocked && !editing && (
               <>
                 <button
                   onClick={enterEdit}
@@ -121,6 +165,20 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
                   className="px-3 py-1.5 text-sm text-red-400 hover:text-red-600 border border-red-200 rounded-lg hover:border-red-300 hover:bg-red-50 transition-all"
                 >
                   Delete
+                </button>
+              </>
+            )}
+            {editing && (
+              <>
+                <button onClick={() => setEditing(false)} className="px-3 py-1.5 text-sm transition-colors" style={{ color: 'var(--th-muted)' }}>
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="px-4 py-2 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 disabled:opacity-40 transition-colors"
+                >
+                  {saving ? 'Saving...' : 'Save'}
                 </button>
               </>
             )}
@@ -165,6 +223,10 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
                 onChange={(url, t) => { setSpotifyUrl(url); setSpotifyTitle(t); }}
               />
             </div>
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-widest block mb-2" style={{ color: 'var(--th-faint)' }}>Now Consuming</label>
+              <MediaPicker selectedIds={editLinkedMediaIds} onChange={setEditLinkedMediaIds} />
+            </div>
             <div className="flex justify-end pb-8">
               <button
                 onClick={handleSave}
@@ -175,6 +237,20 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
               </button>
             </div>
           </div>
+        ) : isLocked ? (
+          <div className="text-center py-20">
+            <p className="font-display text-4xl mb-4" style={{ color: 'var(--th-border)' }}>SEALED</p>
+            <h1 className="font-display text-2xl mb-3" style={{ color: 'var(--th-text)' }}>Time Capsule</h1>
+            <p className="text-sm mb-2" style={{ color: 'var(--th-muted)' }}>
+              Written {dateStr}
+            </p>
+            {entry.revealAt && (
+              <p className="font-mono-editorial" style={{ color: 'var(--th-accent)' }}>
+                Opens {new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date(entry.revealAt))}
+                {' '}({Math.ceil((new Date(entry.revealAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days)
+              </p>
+            )}
+          </div>
         ) : (
           <div className="space-y-4">
             <div className="flex items-start gap-3">
@@ -183,6 +259,12 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
                 {entry.title || 'Untitled'}
               </h1>
             </div>
+
+            {entry.isTimeCapsule && entry.isRevealed && (
+              <p className="font-mono-editorial" style={{ color: 'var(--th-accent)' }}>
+                Time capsule — revealed
+              </p>
+            )}
 
             <div className="text-xs space-y-0.5" style={{ color: 'var(--th-faint)' }}>
               <p>Written {dateStr}</p>
@@ -197,6 +279,30 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
                     #{tag}
                   </span>
                 ))}
+              </div>
+            )}
+
+            {linkedMedia.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest mb-1.5" style={{ color: 'var(--th-faint)' }}>
+                  Consumed with this entry
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {linkedMedia.map((item) => {
+                    const cfg = MEDIA_TYPE_CONFIG[item.type];
+                    return (
+                      <Link
+                        key={item.id}
+                        href="/media"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-opacity hover:opacity-80"
+                        style={{ background: cfg.bg, color: cfg.color, borderColor: `${cfg.color}40` }}
+                      >
+                        <span>{cfg.emoji}</span>
+                        <span>{item.title}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
@@ -274,5 +380,14 @@ export default function EntryPage({ params }: { params: Promise<{ id: string }> 
         </div>
       )}
     </div>
+  );
+}
+
+export default function EntryPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  return (
+    <AuthGuard>
+      <EntryContent id={id} />
+    </AuthGuard>
   );
 }

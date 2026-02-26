@@ -3,15 +3,22 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createEntry } from '@/lib/storage';
+import { createEntry } from '@/lib/db';
+import { createMediaLog } from '@/lib/mediaDb';
+import { useAuth } from '@/components/AuthProvider';
+import AuthGuard from '@/components/AuthGuard';
 import MoodPicker from '@/components/MoodPicker';
 import TagInput from '@/components/TagInput';
 import MarkdownEditor from '@/components/MarkdownEditor';
 import ImageUploader from '@/components/ImageUploader';
 import SpotifyEmbed from '@/components/SpotifyEmbed';
+import MediaPicker from '@/components/MediaPicker';
+import TimeCapsuleToggle from '@/components/TimeCapsuleToggle';
+import AstroPrompt from '@/components/AstroPrompt';
 import ThemeToggle from '@/components/ThemeToggle';
 
-export default function NewEntryPage() {
+function NewEntryContent() {
+  const { user } = useAuth();
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -20,13 +27,34 @@ export default function NewEntryPage() {
   const [images, setImages] = useState<string[]>([]);
   const [spotifyUrl, setSpotifyUrl] = useState<string | undefined>();
   const [spotifyTitle, setSpotifyTitle] = useState<string | undefined>();
+  const [linkedMediaIds, setLinkedMediaIds] = useState<string[]>([]);
+  const [isTimeCapsule, setIsTimeCapsule] = useState(false);
+  const [revealDate, setRevealDate] = useState('');
   const [saving, setSaving] = useState(false);
 
-  function handleSave() {
-    if (!title.trim() && !body.trim()) return;
+  async function handleSave() {
+    if (!user || (!title.trim() && !body.trim())) return;
     setSaving(true);
-    const entry = createEntry({ title: title.trim(), body, mood, tags, images, spotifyUrl, spotifyTitle });
-    router.push(`/entry/${entry.id}`);
+    try {
+      const entry = await createEntry(user.id, {
+        title: title.trim(),
+        body,
+        mood,
+        tags,
+        images,
+        spotifyUrl,
+        spotifyTitle,
+        isTimeCapsule,
+        revealAt: isTimeCapsule && revealDate ? new Date(revealDate).toISOString() : undefined,
+      });
+      await Promise.all(
+        linkedMediaIds.map((mediaId) => createMediaLog(user.id, mediaId, entry.id))
+      );
+      router.push(`/entry/${entry.id}`);
+    } catch (err) {
+      console.error('Failed to save entry:', err);
+      setSaving(false);
+    }
   }
 
   const isEmpty = !title.trim() && !body.trim();
@@ -74,6 +102,9 @@ export default function NewEntryPage() {
 
         <hr style={{ borderColor: 'var(--th-border)' }} />
 
+        {/* Astro prompt */}
+        <AstroPrompt onUsePrompt={(prompt) => setBody((prev) => prev ? `${prev}\n\n${prompt}` : prompt)} />
+
         <div>
           <label className="text-xs font-semibold uppercase tracking-widest block mb-2" style={{ color: 'var(--th-faint)' }}>Mood</label>
           <MoodPicker value={mood} onChange={setMood} />
@@ -103,6 +134,23 @@ export default function NewEntryPage() {
           />
         </div>
 
+        <div>
+          <label className="text-xs font-semibold uppercase tracking-widest block mb-2" style={{ color: 'var(--th-faint)' }}>Now Consuming</label>
+          <MediaPicker selectedIds={linkedMediaIds} onChange={setLinkedMediaIds} />
+        </div>
+
+        <hr style={{ borderColor: 'var(--th-border)' }} />
+
+        <div>
+          <label className="text-xs font-semibold uppercase tracking-widest block mb-2" style={{ color: 'var(--th-faint)' }}>Time Capsule</label>
+          <TimeCapsuleToggle
+            enabled={isTimeCapsule}
+            revealDate={revealDate}
+            onToggle={setIsTimeCapsule}
+            onDateChange={setRevealDate}
+          />
+        </div>
+
         <div className="flex justify-end pt-2 pb-8">
           <button
             onClick={handleSave}
@@ -114,5 +162,13 @@ export default function NewEntryPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function NewEntryPage() {
+  return (
+    <AuthGuard>
+      <NewEntryContent />
+    </AuthGuard>
   );
 }

@@ -10,19 +10,24 @@ interface MoodPickerProps {
 export default function MoodPicker({ value, onChange }: MoodPickerProps) {
   return (
     <div className="flex flex-wrap gap-2">
-      {MOODS.map(({ emoji, label }) => (
-        <button
-          key={emoji}
-          type="button"
-          title={label}
-          onClick={() => onChange(emoji)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border transition-all ${value === emoji ? 'bg-pink-50 border-pink-400 text-pink-700 shadow-sm' : 'hover:border-pink-200'}`}
-          style={value !== emoji ? { background: 'var(--th-card)', borderColor: 'var(--th-border)', color: 'var(--th-muted)' } : {}}
-        >
-          <span className="text-base">{emoji}</span>
-          <span>{label}</span>
-        </button>
-      ))}
+      {MOODS.map(({ emoji, label }) => {
+        const active = value === emoji;
+        return (
+          <button
+            key={emoji}
+            type="button"
+            onClick={() => onChange(emoji)}
+            className="px-3 py-1.5 border text-sm font-mono-editorial transition-all"
+            style={{
+              borderColor: active ? 'var(--th-text)' : 'var(--th-border)',
+              background: active ? 'var(--th-text)' : 'transparent',
+              color: active ? 'var(--th-bg)' : 'var(--th-muted)',
+            }}
+          >
+            {label}
+          </button>
+        );
+      })}
     </div>
   );
 }

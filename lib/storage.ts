@@ -7,7 +7,7 @@ export function getEntries(): DiaryEntry[] {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return [];
   try {
-    const entries = (JSON.parse(raw) as DiaryEntry[]).map((e) => ({ ...e, images: e.images ?? [] }));
+    const entries = (JSON.parse(raw) as DiaryEntry[]).map((e) => ({ ...e, images: e.images ?? [], tags: e.tags ?? [], mood: e.mood ?? '' }));
     return [...entries].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );

@@ -7,18 +7,21 @@ export interface DiaryEntry {
   createdAt: string; // ISO string
   updatedAt: string; // ISO string
   timezone: string;
-  images: string[]; // base64 compressed data URLs
+  images: string[]; // base64 data URLs or Supabase Storage URLs
   spotifyUrl?: string; // Spotify embed URL
   spotifyTitle?: string; // e.g. "Song Name by Artist"
+  isTimeCapsule: boolean;
+  revealAt: string | null; // ISO string, when time capsule unlocks
+  isRevealed: boolean;
 }
 
 export const MOODS = [
-  { emoji: '😊', label: 'Happy' },
-  { emoji: '😌', label: 'Calm' },
-  { emoji: '🎉', label: 'Excited' },
-  { emoji: '🤔', label: 'Thoughtful' },
-  { emoji: '😔', label: 'Sad' },
-  { emoji: '😤', label: 'Frustrated' },
-  { emoji: '😰', label: 'Anxious' },
-  { emoji: '😴', label: 'Tired' },
+  { emoji: 'happy', label: 'Happy' },
+  { emoji: 'calm', label: 'Calm' },
+  { emoji: 'excited', label: 'Excited' },
+  { emoji: 'thoughtful', label: 'Thoughtful' },
+  { emoji: 'sad', label: 'Sad' },
+  { emoji: 'frustrated', label: 'Frustrated' },
+  { emoji: 'anxious', label: 'Anxious' },
+  { emoji: 'tired', label: 'Tired' },
 ] as const;
