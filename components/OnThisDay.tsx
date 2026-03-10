@@ -16,11 +16,12 @@ export default function OnThisDay({ entries }: Props) {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <span className="font-mono-editorial" style={{ color: 'var(--th-faint)' }}>On This Day</span>
+        <span className="section-label" style={{ color: 'var(--th-text)' }}>On This Day</span>
         <button
           onClick={() => setDismissed(true)}
-          className="font-mono-editorial transition-opacity hover:opacity-50"
-          style={{ color: 'var(--th-faint)' }}
+          className="font-mono-editorial transition-opacity hover:opacity-70"
+          style={{ color: 'var(--th-muted)' }}
+          aria-label="Dismiss on this day section"
         >
           Dismiss
         </button>

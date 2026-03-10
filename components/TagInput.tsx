@@ -27,9 +27,9 @@ export default function TagInput({ tags, onChange }: TagInputProps) {
       style={{ background: 'var(--th-input)', borderColor: 'var(--th-border)' }}
     >
       {tags.map((tag) => (
-        <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 bg-pink-50 text-pink-700 text-sm rounded-full border border-pink-200">
+        <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 bg-pink-100 text-pink-800 text-sm rounded-full border border-pink-300">
           #{tag}
-          <button type="button" onClick={() => onChange(tags.filter((t) => t !== tag))} className="text-pink-400 hover:text-pink-600 leading-none">×</button>
+          <button type="button" onClick={() => onChange(tags.filter((t) => t !== tag))} className="text-pink-600 hover:text-pink-800 leading-none" aria-label={`Remove tag ${tag}`}>×</button>
         </span>
       ))}
       <input

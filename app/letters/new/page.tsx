@@ -48,11 +48,7 @@ function NewLetterContent() {
           <h1 className="text-sm font-semibold" style={{ color: 'var(--th-text)' }}>New Letter</h1>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <button
-              onClick={handleSave}
-              disabled={!canSave || saving}
-              className="px-4 py-2 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
+            <button onClick={handleSave} disabled={!canSave || saving} className="btn-primary">
               {saving ? 'Sending...' : 'Seal & Send'}
             </button>
           </div>
@@ -119,7 +115,7 @@ function NewLetterContent() {
           <button
             onClick={handleSave}
             disabled={!canSave || saving}
-            className="px-6 py-2.5 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm"
+            className="btn-primary"
           >
             {saving ? 'Sending...' : 'Seal & Send to Future'}
           </button>

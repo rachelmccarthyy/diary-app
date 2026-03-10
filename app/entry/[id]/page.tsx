@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use, useCallback } from 'react';
+import { useState, useEffect, useRef, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
@@ -39,7 +39,10 @@ function EntryContent({ id }: { id: string }) {
   const [spotifyTitle, setSpotifyTitle] = useState<string | undefined>();
   const [editLinkedMediaIds, setEditLinkedMediaIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const autoSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isSavingRef = useRef(false);
 
   const loadEntry = useCallback(async () => {
     try {
@@ -82,24 +85,42 @@ function EntryContent({ id }: { id: string }) {
     setEditing(true);
   }
 
-  async function handleSave() {
-    if (!entry || !user) return;
-    setSaving(true);
+  const doAutoSave = useCallback(async () => {
+    if (!entry || !user || isSavingRef.current) return;
+    isSavingRef.current = true;
+    setAutoSaveStatus('saving');
     try {
       const updated = await updateEntry(id, { title: title.trim(), body, mood, tags, images, spotifyUrl, spotifyTitle });
       setEntry(updated);
-      // Update media logs
       await deleteLogsForEntry(id);
       await Promise.all(editLinkedMediaIds.map((mediaId) => createMediaLog(user.id, mediaId, id)));
       const logs = await getLogsForEntry(id);
       const media = await Promise.all(logs.map((l) => getMediaItem(l.media_id)));
       setLinkedMedia(media.filter((m): m is MediaItem => m !== null));
-      setEditing(false);
+      setAutoSaveStatus('saved');
     } catch (err) {
-      console.error('Failed to save:', err);
+      console.error('Auto-save failed:', err);
     } finally {
-      setSaving(false);
+      isSavingRef.current = false;
     }
+  }, [id, entry, user, title, body, mood, tags, images, spotifyUrl, spotifyTitle, editLinkedMediaIds]);
+
+  // Debounced auto-save while editing
+  useEffect(() => {
+    if (!editing) return;
+    if (autoSaveRef.current) clearTimeout(autoSaveRef.current);
+    autoSaveRef.current = setTimeout(() => {
+      doAutoSave();
+    }, 2000);
+    return () => {
+      if (autoSaveRef.current) clearTimeout(autoSaveRef.current);
+    };
+  }, [editing, title, body, mood, tags, images, spotifyUrl, spotifyTitle, editLinkedMediaIds, doAutoSave]);
+
+  async function handleDoneEditing() {
+    if (autoSaveRef.current) clearTimeout(autoSaveRef.current);
+    await doAutoSave();
+    setEditing(false);
   }
 
   async function handleDelete() {
@@ -153,16 +174,13 @@ function EntryContent({ id }: { id: string }) {
             <ThemeToggle />
             {!isLocked && !editing && (
               <>
-                <button
-                  onClick={enterEdit}
-                  className="px-3 py-1.5 text-sm rounded-lg border transition-all hover:border-pink-300"
-                  style={{ color: 'var(--th-muted)', borderColor: 'var(--th-border)' }}
-                >
+                <button onClick={enterEdit} className="btn-secondary">
                   Edit
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="px-3 py-1.5 text-sm text-red-400 hover:text-red-600 border border-red-200 rounded-lg hover:border-red-300 hover:bg-red-50 transition-all"
+                  className="btn-secondary"
+                  style={{ borderColor: '#ef4444', color: '#ef4444' }}
                 >
                   Delete
                 </button>
@@ -170,15 +188,11 @@ function EntryContent({ id }: { id: string }) {
             )}
             {editing && (
               <>
-                <button onClick={() => setEditing(false)} className="px-3 py-1.5 text-sm transition-colors" style={{ color: 'var(--th-muted)' }}>
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="px-4 py-2 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 disabled:opacity-40 transition-colors"
-                >
-                  {saving ? 'Saving...' : 'Save'}
+                <span className="font-mono-editorial text-xs" style={{ color: 'var(--th-faint)' }}>
+                  {autoSaveStatus === 'saving' ? 'Saving...' : autoSaveStatus === 'saved' ? 'Saved' : ''}
+                </span>
+                <button onClick={handleDoneEditing} className="btn-primary">
+                  Done
                 </button>
               </>
             )}
@@ -227,15 +241,7 @@ function EntryContent({ id }: { id: string }) {
               <label className="text-xs font-semibold uppercase tracking-widest block mb-2" style={{ color: 'var(--th-faint)' }}>Now Consuming</label>
               <MediaPicker selectedIds={editLinkedMediaIds} onChange={setEditLinkedMediaIds} />
             </div>
-            <div className="flex justify-end pb-8">
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="px-6 py-2.5 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 disabled:opacity-40 transition-colors shadow-sm"
-              >
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
+            <div className="pb-8" />
           </div>
         ) : isLocked ? (
           <div className="text-center py-20">
@@ -254,7 +260,15 @@ function EntryContent({ id }: { id: string }) {
         ) : (
           <div className="space-y-4">
             <div className="flex items-start gap-3">
-              {entry.mood && <span className="text-3xl mt-1">{entry.mood}</span>}
+              {entry.mood && (
+                <div className="flex gap-1 mt-1.5 flex-wrap">
+                  {entry.mood.split(',').filter(Boolean).map((m) => (
+                    <span key={m} className="font-mono-editorial text-xs px-2 py-0.5 border rounded" style={{ borderColor: 'var(--th-border-strong)', color: 'var(--th-muted)' }}>
+                      {m}
+                    </span>
+                  ))}
+                </div>
+              )}
               <h1 className="text-2xl font-bold leading-tight" style={{ color: 'var(--th-text)' }}>
                 {entry.title || 'Untitled'}
               </h1>
@@ -275,7 +289,7 @@ function EntryContent({ id }: { id: string }) {
             {entry.tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {entry.tags.map((tag) => (
-                  <span key={tag} className="text-xs px-2.5 py-1 bg-pink-50 text-pink-600 rounded-full border border-pink-200">
+                  <span key={tag} className="text-xs px-2.5 py-1 bg-pink-100 text-pink-800 rounded-full border border-pink-300">
                     #{tag}
                   </span>
                 ))}
@@ -335,8 +349,11 @@ function EntryContent({ id }: { id: string }) {
                   <img
                     key={i}
                     src={src}
-                    alt={`Image ${i + 1}`}
+                    alt={`Image ${i + 1} from entry`}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setLightboxSrc(src)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setLightboxSrc(src); } }}
                     className="w-full rounded-xl border object-cover cursor-zoom-in hover:opacity-95 transition-opacity"
                     style={{ borderColor: 'var(--th-border)' }}
                   />
@@ -349,16 +366,31 @@ function EntryContent({ id }: { id: string }) {
 
       {lightboxSrc && (
         <div
+          role="dialog"
+          aria-label="Image lightbox"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm cursor-zoom-out p-4"
           onClick={() => setLightboxSrc(null)}
+          onKeyDown={(e) => { if (e.key === 'Escape') setLightboxSrc(null); }}
         >
+          <button
+            className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center bg-white/20 hover:bg-white/30 text-white rounded-full text-lg transition-colors"
+            onClick={() => setLightboxSrc(null)}
+            aria-label="Close lightbox"
+          >
+            ×
+          </button>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={lightboxSrc} alt="Full size" className="max-w-full max-h-full rounded-xl object-contain shadow-2xl" />
         </div>
       )}
 
       {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div
+          role="dialog"
+          aria-label="Confirm delete"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          onKeyDown={(e) => { if (e.key === 'Escape') setShowDeleteConfirm(false); }}
+        >
           <div className="rounded-2xl shadow-xl p-6 mx-4 max-w-sm w-full border" style={{ background: 'var(--th-card)', borderColor: 'var(--th-border)' }}>
             <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--th-text)' }}>Delete this entry?</h3>
             <p className="text-sm mb-5" style={{ color: 'var(--th-muted)' }}>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { getProfile } from '@/lib/db';
+import { getProfile, updateProfile } from '@/lib/db';
 import { getSunSign, getSignInfo, getCurrentMoonPhase, isMercuryRetrograde } from '@/lib/astrology';
 import { calculateChart } from '@/lib/birthChart';
 import type { ChartData } from '@/lib/birthChart';
@@ -17,10 +17,22 @@ function ChartContent() {
   const [loading, setLoading] = useState(true);
   const [noBirthData, setNoBirthData] = useState(false);
 
+  // Inline birth info editing
+  const [editingBirth, setEditingBirth] = useState(false);
+  const [birthDate, setBirthDate] = useState('');
+  const [birthTime, setBirthTime] = useState('');
+  const [birthLocation, setBirthLocation] = useState('');
+  const [savingBirth, setSavingBirth] = useState(false);
+
   const loadChart = useCallback(async () => {
     if (!user) return;
     try {
       const profile = await getProfile(user.id);
+      if (profile) {
+        setBirthDate(profile.birth_date ?? '');
+        setBirthTime(profile.birth_time ?? '');
+        setBirthLocation(profile.birth_location ?? '');
+      }
       if (!profile?.birth_date) {
         setNoBirthData(true);
         return;
@@ -38,6 +50,56 @@ function ChartContent() {
     loadChart();
   }, [loadChart]);
 
+  async function handleSaveBirth() {
+    if (!user || !birthDate) return;
+    setSavingBirth(true);
+    try {
+      let birth_lat: number | null = null;
+      let birth_lng: number | null = null;
+      let birth_timezone: string | null = null;
+      const loc = birthLocation.trim();
+      if (loc) {
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(loc)}&format=json&limit=1`,
+            { headers: { 'User-Agent': 'diary-app/1.0' } }
+          );
+          const results = await res.json();
+          if (results.length > 0) {
+            birth_lat = parseFloat(results[0].lat);
+            birth_lng = parseFloat(results[0].lon);
+            try {
+              const tzRes = await fetch(
+                `https://timeapi.io/api/timezone/coordinate?latitude=${birth_lat}&longitude=${birth_lng}`
+              );
+              const tzData = await tzRes.json();
+              if (tzData.timeZone) birth_timezone = tzData.timeZone;
+            } catch { /* timezone lookup failed */ }
+          }
+        } catch { /* geocoding failed */ }
+      }
+
+      await updateProfile(user.id, {
+        birth_date: birthDate || null,
+        birth_time: birthTime || null,
+        birth_location: loc || null,
+        birth_lat,
+        birth_lng,
+        birth_timezone,
+      });
+
+      setEditingBirth(false);
+      setNoBirthData(false);
+      // Reload chart
+      setLoading(true);
+      await loadChart();
+    } catch (err) {
+      console.error('Failed to save birth info:', err);
+    } finally {
+      setSavingBirth(false);
+    }
+  }
+
   const moon = getCurrentMoonPhase();
   const retrograde = isMercuryRetrograde();
 
@@ -49,7 +111,66 @@ function ChartContent() {
     );
   }
 
-  if (noBirthData) {
+  // Birth info form (used for both empty state and edit mode)
+  const birthForm = (
+    <div className="space-y-4">
+      <div>
+        <label className="text-xs font-semibold uppercase tracking-widest block mb-1" style={{ color: 'var(--th-faint)' }}>Birth Date *</label>
+        <input
+          type="date"
+          value={birthDate}
+          onChange={(e) => setBirthDate(e.target.value)}
+          className="w-full px-4 py-3 rounded-xl border text-sm focus:outline-none"
+          style={{ background: 'var(--th-input)', color: 'var(--th-text)', borderColor: 'var(--th-border)' }}
+        />
+        {birthDate && getSunSign(birthDate) && (
+          <p className="text-sm mt-2 flex items-center gap-2" style={{ color: 'var(--th-text)' }}>
+            <span className="text-lg">{getSignInfo(getSunSign(birthDate)!)?.symbol}</span>
+            <span className="font-medium">{getSunSign(birthDate)}</span>
+          </p>
+        )}
+      </div>
+      <div>
+        <label className="text-xs font-semibold uppercase tracking-widest block mb-1" style={{ color: 'var(--th-faint)' }}>Birth Time</label>
+        <input
+          type="time"
+          value={birthTime}
+          onChange={(e) => setBirthTime(e.target.value)}
+          className="w-full px-4 py-3 rounded-xl border text-sm focus:outline-none"
+          style={{ background: 'var(--th-input)', color: 'var(--th-text)', borderColor: 'var(--th-border)' }}
+        />
+        <p className="text-xs mt-1" style={{ color: 'var(--th-faint)' }}>Needed for accurate rising sign</p>
+      </div>
+      <div>
+        <label className="text-xs font-semibold uppercase tracking-widest block mb-1" style={{ color: 'var(--th-faint)' }}>Birth Location</label>
+        <input
+          type="text"
+          value={birthLocation}
+          onChange={(e) => setBirthLocation(e.target.value)}
+          placeholder="City, Country"
+          className="w-full px-4 py-3 rounded-xl border text-sm focus:outline-none"
+          style={{ background: 'var(--th-input)', color: 'var(--th-text)', borderColor: 'var(--th-border)' }}
+        />
+        <p className="text-xs mt-1" style={{ color: 'var(--th-faint)' }}>Needed for accurate chart positions</p>
+      </div>
+      <div className="flex gap-3 pt-2">
+        {!noBirthData && (
+          <button onClick={() => setEditingBirth(false)} className="btn-secondary">
+            Cancel
+          </button>
+        )}
+        <button
+          onClick={handleSaveBirth}
+          disabled={!birthDate || savingBirth}
+          className="btn-primary"
+        >
+          {savingBirth ? 'Saving...' : 'Save & Generate Chart'}
+        </button>
+      </div>
+    </div>
+  );
+
+  if (noBirthData || editingBirth) {
     return (
       <div className="min-h-screen" style={{ background: 'var(--th-bg)' }}>
         <header className="sticky top-0 z-10 backdrop-blur-sm border-b" style={{ background: 'var(--th-header-bg)', borderColor: 'var(--th-border)' }}>
@@ -59,13 +180,15 @@ function ChartContent() {
             <ThemeToggle />
           </div>
         </header>
-        <div className="flex flex-col items-center justify-center py-32 text-center px-4">
-          <p className="font-display text-4xl mb-4" style={{ color: 'var(--th-border)' }}>*</p>
-          <h2 className="text-lg font-semibold mb-2" style={{ color: 'var(--th-muted)' }}>No birth data yet</h2>
-          <p className="text-sm mb-6" style={{ color: 'var(--th-faint)' }}>Add your birth date in settings to see your birth chart.</p>
-          <Link href="/settings" className="px-4 py-2 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 transition-colors">
-            Go to Settings
-          </Link>
+        <div className="max-w-md mx-auto py-12 px-4">
+          <p className="font-display text-4xl mb-4 text-center" style={{ color: 'var(--th-border)' }}>*</p>
+          <h2 className="text-lg font-semibold mb-2 text-center" style={{ color: 'var(--th-muted)' }}>
+            {editingBirth ? 'Edit Birth Info' : 'Enter Your Birth Info'}
+          </h2>
+          <p className="text-sm mb-6 text-center" style={{ color: 'var(--th-faint)' }}>
+            Add your birth details to generate a personalized chart.
+          </p>
+          {birthForm}
         </div>
       </div>
     );
@@ -83,7 +206,12 @@ function ChartContent() {
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="text-sm flex items-center gap-1" style={{ color: 'var(--th-muted)' }}>← Back</Link>
           <h1 className="text-sm font-semibold" style={{ color: 'var(--th-text)' }}>Birth Chart</h1>
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <button onClick={() => setEditingBirth(true)} className="btn-secondary">
+              Edit Birth Info
+            </button>
+          </div>
         </div>
       </header>
 
@@ -115,7 +243,7 @@ function ChartContent() {
               ) : (
                 <>
                   <p className="text-3xl mb-1">?</p>
-                  <Link href="/settings" className="text-sm underline" style={{ color: 'var(--th-accent)' }}>Add birth time</Link>
+                  <button onClick={() => setEditingBirth(true)} className="btn-secondary" style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem' }}>Add birth time</button>
                 </>
               )}
               <p className="font-mono-editorial" style={{ color: 'var(--th-faint)' }}>Rising Sign</p>

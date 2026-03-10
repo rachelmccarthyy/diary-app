@@ -70,7 +70,7 @@ export default function SpotifyEmbed({ url, title, onChange }: SpotifyEmbedProps
           type="button"
           onClick={handleAdd}
           disabled={!input.trim() || loading}
-          className="px-3 py-2 bg-[#1DB954] text-white text-sm font-semibold rounded-lg hover:bg-[#1aa34a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 whitespace-nowrap"
+          className="px-3 py-2 bg-[#1DB954] text-white text-sm font-semibold rounded-lg hover:bg-[#1aa34a] disabled:opacity-50 disabled:bg-[#1DB954]/50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 whitespace-nowrap"
         >
           {loading ? '...' : '♫ Add'}
         </button>

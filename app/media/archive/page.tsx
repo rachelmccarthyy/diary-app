@@ -68,13 +68,13 @@ function ArchiveContent() {
             <p className="text-4xl mb-4">📦</p>
             <h2 className="text-lg font-semibold mb-2" style={{ color: 'var(--th-muted)' }}>Nothing archived yet</h2>
             <p className="text-sm mb-6" style={{ color: 'var(--th-faint)' }}>Finished or dropped items will appear here.</p>
-            <Link href="/media" className="px-4 py-2 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 transition-colors">Go to Media</Link>
+            <Link href="/media" className="btn-primary">Go to Media</Link>
           </div>
         ) : (
           <div className="space-y-8">
             {years.map((year) => (
               <section key={year}>
-                <h2 className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--th-faint)' }}>{year}</h2>
+                <h2 className="section-label mb-3" style={{ color: 'var(--th-text)' }}>{year}</h2>
                 <div className="rounded-xl border divide-y overflow-hidden" style={{ borderColor: 'var(--th-border)' }}>
                   {grouped[year].map((item) => {
                     const cfg = MEDIA_TYPE_CONFIG[item.type];

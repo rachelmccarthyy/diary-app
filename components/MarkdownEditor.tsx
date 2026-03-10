@@ -27,7 +27,7 @@ export default function MarkdownEditor({ value, onChange, placeholder }: Markdow
   const [preview, setPreview] = useState(false);
 
   return (
-    <div className="flex flex-col rounded-lg overflow-hidden border transition-all focus-within:border-pink-400 focus-within:ring-1 focus-within:ring-pink-100" style={{ borderColor: 'var(--th-border)' }}>
+    <div className="flex flex-col rounded-lg overflow-hidden border transition-all focus-within:ring-2" style={{ borderColor: 'var(--th-border)', '--tw-ring-color': 'var(--th-accent)' } as React.CSSProperties}>
       <div className="flex items-center justify-between px-3 py-2 border-b" style={{ background: 'var(--th-toolbar)', borderColor: 'var(--th-border)' }}>
         <span className="text-xs font-medium tracking-wide uppercase" style={{ color: 'var(--th-faint)' }}>
           {preview ? 'Preview' : 'Markdown'}

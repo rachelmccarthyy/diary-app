@@ -16,13 +16,15 @@ export default function TimeCapsuleToggle({ enabled, revealDate, onToggle, onDat
     <div className="space-y-3">
       <button
         type="button"
+        role="switch"
+        aria-checked={enabled}
         onClick={() => onToggle(!enabled)}
         className="flex items-center gap-3 w-full text-left transition-opacity hover:opacity-80"
       >
         <div
           className="w-10 h-6 rounded-full flex items-center transition-all px-0.5"
           style={{
-            background: enabled ? 'var(--th-accent)' : 'var(--th-border)',
+            background: enabled ? 'var(--th-accent)' : 'var(--th-border-strong)',
             justifyContent: enabled ? 'flex-end' : 'flex-start',
           }}
         >

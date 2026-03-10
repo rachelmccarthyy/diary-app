@@ -9,8 +9,8 @@ const DARK: Record<string, string> = {
   '--th-border': '#222222',
   '--th-border-strong': '#333333',
   '--th-text': '#f0f0f0',
-  '--th-muted': '#888888',
-  '--th-faint': '#444444',
+  '--th-muted': '#999999',
+  '--th-faint': '#777777',
   '--th-input': '#0a0a0a',
   '--th-header-bg': 'rgba(10, 10, 10, 0.97)',
   '--th-accent': '#d4587a',
@@ -53,6 +53,7 @@ export default function ThemeToggle() {
     <button
       onClick={toggle}
       title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+      aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
       className="w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--th-border)] hover:bg-[var(--th-toolbar)] transition-all text-base"
     >
       {dark ? '☀️' : '🌙'}

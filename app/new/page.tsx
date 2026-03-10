@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createEntry } from '@/lib/db';
-import { createMediaLog } from '@/lib/mediaDb';
+import { createEntry, updateEntry } from '@/lib/db';
+import { createMediaLog, deleteLogsForEntry } from '@/lib/mediaDb';
 import { useAuth } from '@/components/AuthProvider';
 import AuthGuard from '@/components/AuthGuard';
 import MoodPicker from '@/components/MoodPicker';
@@ -16,6 +16,8 @@ import MediaPicker from '@/components/MediaPicker';
 import TimeCapsuleToggle from '@/components/TimeCapsuleToggle';
 import AstroPrompt from '@/components/AstroPrompt';
 import ThemeToggle from '@/components/ThemeToggle';
+
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 function NewEntryContent() {
   const { user } = useAuth();
@@ -30,13 +32,21 @@ function NewEntryContent() {
   const [linkedMediaIds, setLinkedMediaIds] = useState<string[]>([]);
   const [isTimeCapsule, setIsTimeCapsule] = useState(false);
   const [revealDate, setRevealDate] = useState('');
-  const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
-  async function handleSave() {
-    if (!user || (!title.trim() && !body.trim())) return;
-    setSaving(true);
+  // Track whether an entry has been created in the DB
+  const entryIdRef = useRef<string | null>(null);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isSavingRef = useRef(false);
+
+  const isEmpty = !title.trim() && !body.trim();
+
+  const doSave = useCallback(async () => {
+    if (!user || isEmpty || isSavingRef.current) return;
+    isSavingRef.current = true;
+    setSaveStatus('saving');
     try {
-      const entry = await createEntry(user.id, {
+      const payload = {
         title: title.trim(),
         body,
         mood,
@@ -46,18 +56,64 @@ function NewEntryContent() {
         spotifyTitle,
         isTimeCapsule,
         revealAt: isTimeCapsule && revealDate ? new Date(revealDate).toISOString() : undefined,
-      });
-      await Promise.all(
-        linkedMediaIds.map((mediaId) => createMediaLog(user.id, mediaId, entry.id))
-      );
-      router.push(`/entry/${entry.id}`);
+      };
+
+      if (entryIdRef.current) {
+        // Update existing draft
+        await updateEntry(entryIdRef.current, payload);
+        // Update media logs
+        await deleteLogsForEntry(entryIdRef.current);
+        await Promise.all(
+          linkedMediaIds.map((mediaId) => createMediaLog(user.id, mediaId, entryIdRef.current!))
+        );
+      } else {
+        // Create new entry
+        const entry = await createEntry(user.id, payload);
+        entryIdRef.current = entry.id;
+        await Promise.all(
+          linkedMediaIds.map((mediaId) => createMediaLog(user.id, mediaId, entry.id))
+        );
+      }
+      setSaveStatus('saved');
     } catch (err) {
-      console.error('Failed to save entry:', err);
-      setSaving(false);
+      console.error('Auto-save failed:', err);
+      setSaveStatus('error');
+    } finally {
+      isSavingRef.current = false;
+    }
+  }, [user, title, body, mood, tags, images, spotifyUrl, spotifyTitle, linkedMediaIds, isTimeCapsule, revealDate, isEmpty]);
+
+  // Debounced auto-save: triggers 2s after last change
+  useEffect(() => {
+    if (isEmpty) return;
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      doSave();
+    }, 2000);
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
+  }, [title, body, mood, tags, images, spotifyUrl, spotifyTitle, linkedMediaIds, isTimeCapsule, revealDate, doSave, isEmpty]);
+
+  function handleDone() {
+    // Save immediately and navigate
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    if (entryIdRef.current) {
+      doSave().then(() => router.push(`/entry/${entryIdRef.current}`));
+    } else if (!isEmpty) {
+      doSave().then(() => {
+        if (entryIdRef.current) router.push(`/entry/${entryIdRef.current}`);
+        else router.push('/');
+      });
+    } else {
+      router.push('/');
     }
   }
 
-  const isEmpty = !title.trim() && !body.trim();
+  const statusLabel = saveStatus === 'saving' ? 'Saving...'
+    : saveStatus === 'saved' ? 'Saved'
+    : saveStatus === 'error' ? 'Save failed'
+    : '';
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--th-bg)' }}>
@@ -66,15 +122,15 @@ function NewEntryContent() {
           <Link href="/" className="text-sm transition-colors flex items-center gap-1" style={{ color: 'var(--th-muted)' }}>
             ← Back
           </Link>
-          <h1 className="text-sm font-semibold" style={{ color: 'var(--th-text)' }}>New Entry</h1>
+          <div className="flex items-center gap-2">
+            <span className="font-mono-editorial text-xs" style={{ color: saveStatus === 'error' ? 'var(--th-accent)' : 'var(--th-faint)' }}>
+              {statusLabel}
+            </span>
+          </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <button
-              onClick={handleSave}
-              disabled={isEmpty || saving}
-              className="px-4 py-2 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              {saving ? 'Saving...' : 'Save'}
+            <button onClick={handleDone} className="btn-primary">
+              Done
             </button>
           </div>
         </div>
@@ -151,15 +207,7 @@ function NewEntryContent() {
           />
         </div>
 
-        <div className="flex justify-end pt-2 pb-8">
-          <button
-            onClick={handleSave}
-            disabled={isEmpty || saving}
-            className="px-6 py-2.5 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm"
-          >
-            {saving ? 'Saving...' : 'Save Entry'}
-          </button>
-        </div>
+        <div className="pb-8" />
       </main>
     </div>
   );

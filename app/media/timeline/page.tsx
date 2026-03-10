@@ -59,7 +59,7 @@ function TimelineContent() {
           <p className="text-4xl mb-4">📊</p>
           <h2 className="text-lg font-semibold mb-2" style={{ color: 'var(--th-muted)' }}>Not enough data yet</h2>
           <p className="text-sm mb-6" style={{ color: 'var(--th-faint)' }}>Add at least 2 media items to see a timeline.</p>
-          <Link href="/media" className="px-4 py-2 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 transition-colors">Go to Media</Link>
+          <Link href="/media" className="btn-primary">Go to Media</Link>
         </div>
       </div>
     );

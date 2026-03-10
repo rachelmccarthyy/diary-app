@@ -52,10 +52,7 @@ function LettersContent() {
           <h1 className="text-sm font-semibold" style={{ color: 'var(--th-text)' }}>Letters to Future Self</h1>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Link
-              href="/letters/new"
-              className="px-4 py-2 bg-pink-600 text-white text-xs font-medium rounded-lg hover:bg-pink-700 transition-colors"
-            >
+            <Link href="/letters/new" className="btn-primary">
               + Write Letter
             </Link>
           </div>
@@ -68,7 +65,7 @@ function LettersContent() {
             <p className="font-display text-3xl mb-4" style={{ color: 'var(--th-border)' }}>*</p>
             <h2 className="text-lg font-semibold mb-2" style={{ color: 'var(--th-muted)' }}>No letters yet</h2>
             <p className="text-sm mb-6" style={{ color: 'var(--th-faint)' }}>Write a letter to your future self and choose when to open it.</p>
-            <Link href="/letters/new" className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 transition-colors">
+            <Link href="/letters/new" className="btn-primary">
               Write your first letter
             </Link>
           </div>

@@ -20,6 +20,8 @@ export default function BirthChart({ chart }: Props) {
         viewBox={`0 0 ${SIZE} ${SIZE}`}
         className="w-full max-w-md"
         style={{ maxHeight: '400px' }}
+        role="img"
+        aria-label={`Birth chart showing ${chart.sunSign} sun sign with planetary positions`}
       >
         {/* Outer circle */}
         <circle cx={CENTER} cy={CENTER} r={OUTER_R} fill="none" stroke="var(--th-border)" strokeWidth="1" />

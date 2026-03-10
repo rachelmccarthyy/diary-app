@@ -142,24 +142,13 @@ function MediaContent() {
           </h1>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Link
-              href="/media/timeline"
-              className="text-xs px-3 py-1.5 rounded-lg border transition-all"
-              style={{ color: 'var(--th-muted)', borderColor: 'var(--th-border)', background: 'var(--th-card)' }}
-            >
+            <Link href="/media/timeline" className="btn-secondary" style={{ padding: '0.375rem 0.75rem' }}>
               Timeline
             </Link>
-            <Link
-              href="/media/archive"
-              className="text-xs px-3 py-1.5 rounded-lg border transition-all"
-              style={{ color: 'var(--th-muted)', borderColor: 'var(--th-border)', background: 'var(--th-card)' }}
-            >
+            <Link href="/media/archive" className="btn-secondary" style={{ padding: '0.375rem 0.75rem' }}>
               Archive
             </Link>
-            <button
-              onClick={() => setShowAdd(true)}
-              className="inline-flex items-center gap-1 px-3 py-1.5 bg-pink-600 text-white text-xs font-medium rounded-lg hover:bg-pink-700 transition-colors"
-            >
+            <button onClick={() => setShowAdd(true)} className="btn-primary">
               + Add
             </button>
           </div>
@@ -181,10 +170,7 @@ function MediaContent() {
               <p className="text-sm mb-4" style={{ color: 'var(--th-muted)' }}>
                 Nothing currently tracked.
               </p>
-              <button
-                onClick={() => setShowAdd(true)}
-                className="inline-flex items-center gap-1 px-4 py-2 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 transition-colors"
-              >
+              <button onClick={() => setShowAdd(true)} className="btn-primary">
                 + Start tracking something
               </button>
             </div>
@@ -237,20 +223,20 @@ function MediaContent() {
                         {finishConfirm === item.id ? (
                           <>
                             <span className="text-xs" style={{ color: 'var(--th-muted)' }}>Mark as finished?</span>
-                            <button onClick={() => handleFinish(item.id)} className="text-xs px-2.5 py-1 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition-colors">Yes</button>
+                            <button onClick={() => handleFinish(item.id)} className="text-xs px-2.5 py-1 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors font-medium">Yes</button>
                             <button onClick={() => setFinishConfirm(null)} className="text-xs px-2.5 py-1 rounded-lg transition-colors" style={{ color: 'var(--th-muted)' }}>Cancel</button>
                           </>
                         ) : dropConfirm === item.id ? (
                           <>
                             <span className="text-xs" style={{ color: 'var(--th-muted)' }}>Drop this?</span>
-                            <button onClick={() => handleDrop(item.id)} className="text-xs px-2.5 py-1 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors">Yes</button>
+                            <button onClick={() => handleDrop(item.id)} className="text-xs px-2.5 py-1 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors font-medium">Yes</button>
                             <button onClick={() => setDropConfirm(null)} className="text-xs px-2.5 py-1 rounded-lg transition-colors" style={{ color: 'var(--th-muted)' }}>Cancel</button>
                           </>
                         ) : (
                           <>
-                            <button onClick={() => setFinishConfirm(item.id)} className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors">✓ Finished</button>
-                            <button onClick={() => setDropConfirm(item.id)} className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg border transition-colors" style={{ color: 'var(--th-muted)', borderColor: 'var(--th-border)', background: 'var(--th-card)' }}>× Drop</button>
-                            <button onClick={() => handleDelete(item.id)} className="text-xs px-2.5 py-1 rounded-lg text-red-400 hover:text-red-600 transition-colors ml-auto">Delete</button>
+                            <button onClick={() => setFinishConfirm(item.id)} className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors font-medium">✓ Finished</button>
+                            <button onClick={() => setDropConfirm(item.id)} className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border-2 transition-colors font-medium" style={{ color: 'var(--th-text)', borderColor: 'var(--th-border-strong)', background: 'var(--th-card)' }}>× Drop</button>
+                            <button onClick={() => handleDelete(item.id)} className="text-xs px-2.5 py-1.5 rounded-lg text-red-600 hover:text-red-700 hover:underline transition-colors ml-auto font-medium">Delete</button>
                           </>
                         )}
                       </div>
@@ -264,7 +250,7 @@ function MediaContent() {
       </main>
 
       {showAdd && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+        <div role="dialog" aria-label="Add media" className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-4" onKeyDown={(e) => { if (e.key === 'Escape') setShowAdd(false); }}>
           <div className="w-full max-w-md rounded-2xl border shadow-xl p-6 space-y-4" style={{ background: 'var(--th-card)', borderColor: 'var(--th-border)' }}>
             <h2 className="text-base font-semibold" style={{ color: 'var(--th-text)' }}>Add Media</h2>
             <div className="space-y-3">
@@ -303,8 +289,8 @@ function MediaContent() {
               </div>
             </div>
             <div className="flex gap-3 justify-end pt-1">
-              <button onClick={() => setShowAdd(false)} className="px-4 py-2 text-sm rounded-lg border transition-all" style={{ color: 'var(--th-muted)', borderColor: 'var(--th-border)' }}>Cancel</button>
-              <button onClick={handleAdd} disabled={!canAdd} className="px-4 py-2 text-sm bg-pink-600 text-white rounded-lg hover:bg-pink-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">Add</button>
+              <button onClick={() => setShowAdd(false)} className="btn-secondary">Cancel</button>
+              <button onClick={handleAdd} disabled={!canAdd} className="btn-primary">Add</button>
             </div>
           </div>
         </div>

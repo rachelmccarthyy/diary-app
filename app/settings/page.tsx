@@ -118,11 +118,7 @@ function SettingsContent() {
           <h1 className="text-sm font-semibold" style={{ color: 'var(--th-text)' }}>Settings</h1>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="px-4 py-2 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 disabled:opacity-40 transition-colors"
-            >
+            <button onClick={handleSave} disabled={saving} className="btn-primary">
               {saving ? 'Saving...' : saved ? 'Saved!' : 'Save'}
             </button>
           </div>
@@ -218,24 +214,16 @@ function SettingsContent() {
 
           {sunSign && (
             <div className="mt-6">
-              <Link
-                href="/chart"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border transition-opacity hover:opacity-70"
-                style={{ borderColor: 'var(--th-border)', color: 'var(--th-text)' }}
-              >
+              <Link href="/chart" className="btn-secondary">
                 <span>{signInfo?.symbol}</span>
-                <span className="text-sm">View Birth Chart</span>
+                View Birth Chart
               </Link>
             </div>
           )}
         </section>
 
         <div className="flex justify-end pt-2 pb-8">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="px-6 py-2.5 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 disabled:opacity-40 transition-colors shadow-sm"
-          >
+          <button onClick={handleSave} disabled={saving} className="btn-primary">
             {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Settings'}
           </button>
         </div>

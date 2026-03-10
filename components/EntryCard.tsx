@@ -47,7 +47,7 @@ export default function EntryCard({ entry }: EntryCardProps) {
         {/* 2. Title */}
         <h2
           className="font-display mb-2 group-hover:opacity-60 transition-opacity"
-          style={{ fontSize: 'clamp(1.5rem, 3vw, 2.2rem)', color: 'var(--th-text)' }}
+          style={{ fontSize: 'clamp(1.25rem, 2.5vw, 1.75rem)', color: 'var(--th-text)' }}
         >
           {isLocked ? 'Time Capsule' : (entry.title || 'Untitled')}
         </h2>
@@ -64,14 +64,15 @@ export default function EntryCard({ entry }: EntryCardProps) {
             {/* 3. Tags / Mood */}
             {(entry.mood || entry.tags.length > 0) && (
               <div className="flex items-center gap-2 mb-2 flex-wrap">
-                {entry.mood && (
+                {entry.mood && entry.mood.split(',').filter(Boolean).map((m) => (
                   <span
+                    key={m}
                     className="font-mono-editorial px-1.5 py-0.5 border"
                     style={{ borderColor: 'var(--th-border)', color: 'var(--th-muted)' }}
                   >
-                    {entry.mood}
+                    {m}
                   </span>
-                )}
+                ))}
                 {entry.tags.map((tag) => (
                   <span key={tag} className="font-mono-editorial" style={{ color: 'var(--th-faint)' }}>
                     #{tag}

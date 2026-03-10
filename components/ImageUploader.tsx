@@ -65,7 +65,8 @@ export default function ImageUploader({ images, onChange }: ImageUploaderProps) 
               <button
                 type="button"
                 onClick={() => onChange(images.filter((_, j) => j !== i))}
-                className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center bg-black/60 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center bg-black/70 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity hover:bg-red-500"
+                aria-label={`Remove image ${i + 1}`}
               >
                 ×
               </button>
@@ -76,11 +77,15 @@ export default function ImageUploader({ images, onChange }: ImageUploaderProps) 
 
       {images.length < MAX_IMAGES && (
         <div
+          role="button"
+          tabIndex={0}
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
           onClick={() => inputRef.current?.click()}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); inputRef.current?.click(); } }}
           className="flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 border-dashed rounded-lg cursor-pointer hover:border-pink-300 hover:text-pink-400 transition-all"
-          style={{ borderColor: 'var(--th-border)', color: 'var(--th-faint)' }}
+          style={{ borderColor: 'var(--th-border-strong)', color: 'var(--th-muted)' }}
+          aria-label="Upload images"
         >
           <span className="text-2xl">🖼️</span>
           <p className="text-xs text-center">

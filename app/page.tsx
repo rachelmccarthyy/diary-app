@@ -64,7 +64,8 @@ function HomeContent() {
     const q = query.toLowerCase();
     return entries.filter((e) => {
       const matchesQuery = !q || e.title.toLowerCase().includes(q) || e.body.toLowerCase().includes(q);
-      const matchesMood = selectedMoods.length === 0 || selectedMoods.includes(e.mood);
+      const entryMoods = e.mood ? e.mood.split(',').filter(Boolean) : [];
+      const matchesMood = selectedMoods.length === 0 || selectedMoods.some((m) => entryMoods.includes(m));
       const matchesTags = selectedTags.length === 0 || selectedTags.every((t) => e.tags.includes(t));
       return matchesQuery && matchesMood && matchesTags;
     });
@@ -162,35 +163,26 @@ function HomeContent() {
             <ThemeToggle />
             <Link
               href="/letters"
-              className="font-mono-editorial transition-opacity hover:opacity-50"
+              className="nav-link transition-opacity hover:opacity-60"
               style={{ color: 'var(--th-muted)' }}
             >
               Letters
             </Link>
             <Link
               href="/media"
-              className="font-mono-editorial transition-opacity hover:opacity-50"
+              className="nav-link transition-opacity hover:opacity-60"
               style={{ color: 'var(--th-muted)' }}
             >
               Media
             </Link>
             <Link
               href="/chart"
-              className="font-mono-editorial transition-opacity hover:opacity-50"
+              className="nav-link transition-opacity hover:opacity-60"
               style={{ color: 'var(--th-muted)' }}
             >
               Chart
             </Link>
-            <Link
-              href="/new"
-              className="font-display px-5 py-2.5 transition-opacity hover:opacity-75"
-              style={{
-                fontSize: '0.7rem',
-                letterSpacing: '0.12em',
-                background: 'var(--th-text)',
-                color: 'var(--th-bg)',
-              }}
-            >
+            <Link href="/new" className="btn-primary">
               + New Entry
             </Link>
             <UserMenu />
@@ -215,13 +207,13 @@ function HomeContent() {
             {/* Filter widget */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <span className="font-mono-editorial" style={{ color: 'var(--th-faint)' }}>Filter</span>
+                <span className="section-label" style={{ color: 'var(--th-text)' }}>Filter</span>
                 {activeFilterCount > 0 && (
                   <button
                     type="button"
                     onClick={() => { setSelectedMoods([]); setSelectedTags([]); }}
-                    className="font-mono-editorial transition-opacity hover:opacity-50"
-                    style={{ color: 'var(--th-accent)' }}
+                    className="font-mono-editorial px-2 py-0.5 border rounded transition-all hover:opacity-80"
+                    style={{ color: 'var(--th-accent)', borderColor: 'var(--th-accent)' }}
                   >
                     Clear all
                   </button>
@@ -239,12 +231,13 @@ function HomeContent() {
                         key={emoji}
                         type="button"
                         title={label}
+                        aria-pressed={active}
                         onClick={() => toggleMood(emoji)}
                         className="font-mono-editorial px-2 py-1.5 border transition-all"
                         style={{
-                          borderColor: active ? 'var(--th-text)' : 'var(--th-border)',
+                          borderColor: active ? 'var(--th-text)' : 'var(--th-border-strong)',
                           background: active ? 'var(--th-text)' : 'transparent',
-                          color: active ? 'var(--th-bg)' : 'var(--th-faint)',
+                          color: active ? 'var(--th-bg)' : 'var(--th-muted)',
                         }}
                       >
                         {label}
@@ -264,12 +257,13 @@ function HomeContent() {
                         <button
                           key={tag}
                           type="button"
+                          aria-pressed={active}
                           onClick={() => toggleTag(tag)}
                           className="font-mono-editorial px-2 py-1 border transition-all"
                           style={{
-                            borderColor: active ? 'var(--th-text)' : 'var(--th-border)',
+                            borderColor: active ? 'var(--th-text)' : 'var(--th-border-strong)',
                             background: active ? 'var(--th-text)' : 'transparent',
-                            color: active ? 'var(--th-bg)' : 'var(--th-faint)',
+                            color: active ? 'var(--th-bg)' : 'var(--th-muted)',
                           }}
                         >
                           #{tag}
@@ -284,8 +278,8 @@ function HomeContent() {
             {/* Currently widget */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <span className="font-mono-editorial" style={{ color: 'var(--th-faint)' }}>Currently</span>
-                <Link href="/media" className="font-mono-editorial transition-opacity hover:opacity-50" style={{ color: 'var(--th-faint)' }}>
+                <span className="section-label" style={{ color: 'var(--th-text)' }}>Currently</span>
+                <Link href="/media" className="font-mono-editorial underline underline-offset-2 transition-opacity hover:opacity-70" style={{ color: 'var(--th-muted)' }}>
                   Manage →
                 </Link>
               </div>
@@ -324,7 +318,7 @@ function HomeContent() {
             {/* Monthly playlist widget */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <span className="font-mono-editorial" style={{ color: 'var(--th-faint)' }}>{currentMonthName} Playlist</span>
+                <span className="section-label" style={{ color: 'var(--th-text)' }}>{currentMonthName} Playlist</span>
                 <span className="font-mono-editorial" style={{ color: 'var(--th-faint)' }}>
                   {playlistSongs.length} {playlistSongs.length === 1 ? 'song' : 'songs'}
                 </span>
@@ -354,18 +348,20 @@ function HomeContent() {
                         <div className="flex items-center justify-between">
                           <button
                             onClick={() => setPlayingIdx((i) => i !== null ? (i - 1 + playlistSongs.length) % playlistSongs.length : 0)}
-                            className="font-mono-editorial transition-opacity hover:opacity-50"
-                            style={{ color: 'var(--th-faint)' }}
+                            className="font-mono-editorial px-2 py-1 border rounded transition-all hover:opacity-70"
+                            style={{ color: 'var(--th-muted)', borderColor: 'var(--th-border-strong)' }}
+                            aria-label="Previous song"
                           >
                             ← Prev
                           </button>
-                          <span className="font-mono-editorial" style={{ color: 'var(--th-faint)' }}>
+                          <span className="font-mono-editorial" style={{ color: 'var(--th-muted)' }}>
                             {playingIdx + 1} / {playlistSongs.length}
                           </span>
                           <button
                             onClick={() => setPlayingIdx((i) => i !== null ? (i + 1) % playlistSongs.length : 0)}
-                            className="font-mono-editorial transition-opacity hover:opacity-50"
-                            style={{ color: 'var(--th-faint)' }}
+                            className="font-mono-editorial px-2 py-1 border rounded transition-all hover:opacity-70"
+                            style={{ color: 'var(--th-muted)', borderColor: 'var(--th-border-strong)' }}
+                            aria-label="Next song"
                           >
                             Next →
                           </button>
@@ -418,9 +414,11 @@ function HomeContent() {
           {/* Right: entries */}
           <div className="space-y-4">
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono-editorial" style={{ color: 'var(--th-faint)' }}>/</span>
+              <label htmlFor="search-entries" className="sr-only">Search entries</label>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono-editorial" style={{ color: 'var(--th-muted)' }} aria-hidden="true">/</span>
               <input
-                type="text"
+                id="search-entries"
+                type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search entries..."
@@ -456,8 +454,8 @@ function HomeContent() {
                 <button
                   type="button"
                   onClick={() => { setQuery(''); setSelectedMoods([]); setSelectedTags([]); }}
-                  className="font-mono-editorial transition-opacity hover:opacity-50"
-                  style={{ color: 'var(--th-accent)' }}
+                  className="font-mono-editorial px-2 py-0.5 border rounded transition-all hover:opacity-80"
+                  style={{ color: 'var(--th-accent)', borderColor: 'var(--th-accent)' }}
                 >
                   Clear
                 </button>
@@ -469,7 +467,7 @@ function HomeContent() {
                 <p className="font-display text-4xl mb-4" style={{ color: 'var(--th-border)' }}>*</p>
                 <h2 className="text-lg font-semibold mb-2" style={{ color: 'var(--th-muted)' }}>Your diary is empty</h2>
                 <p className="text-sm mb-6" style={{ color: 'var(--th-faint)' }}>Start capturing your thoughts and memories.</p>
-                <Link href="/new" className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-pink-600 text-white text-sm font-medium rounded-lg hover:bg-pink-700 transition-colors">
+                <Link href="/new" className="btn-primary">
                   Write your first entry
                 </Link>
               </div>

@@ -227,34 +227,190 @@ const HOROSCOPE_THEMES: Record<string, string[]> = {
     'Take the lead on something that matters to you.',
     'Your enthusiasm is contagious. Share it with someone.',
     'A bold move could pay off today. Trust your instincts.',
+    'Your passion lights the way forward. Don\'t hold back.',
+    'An unexpected challenge fuels your drive. Rise to meet it.',
+    'Your confidence draws opportunities to you today.',
+    'Let your natural spark ignite a new project or idea.',
+    'Today rewards courage — step outside your comfort zone.',
+    'Your warmth opens doors. Be generous with your energy.',
+    'A competitive edge serves you well today. Play to win.',
+    'Your spontaneity leads to something wonderful.',
   ],
   Earth: [
     'Focus on the practical today — small steps lead to big results.',
     'Ground yourself in nature or routine.',
     'Financial matters may need your attention.',
     'Build something lasting with your steady energy.',
+    'Patience is your superpower today. Trust the process.',
+    'Something you\'ve been cultivating is about to bear fruit.',
+    'Your reliability makes you someone others lean on. Accept that role.',
+    'A sensory experience — food, nature, art — nourishes your soul today.',
+    'Today favors long-term planning over quick fixes.',
+    'Your practical wisdom helps someone who is overthinking.',
+    'Material comfort is not shallow — honor what makes you feel secure.',
+    'Slow down. The answer reveals itself when you stop rushing.',
   ],
   Air: [
     'Communication flows easily today — say what you mean.',
     'A new idea could spark an exciting conversation.',
     'Connect with someone who stimulates your mind.',
     'Your objectivity is your superpower today.',
+    'Words have power today. Choose them carefully and speak your truth.',
+    'An intellectual breakthrough awaits — follow your curiosity.',
+    'Social connections bring unexpected gifts.',
+    'A change of perspective transforms how you see a problem.',
+    'Write down the ideas flowing through you — they\'re worth keeping.',
+    'Your adaptability is a gift. Embrace change rather than resisting it.',
+    'Today favors learning. Pick up that book or start that course.',
+    'A lively debate or exchange of ideas energizes you.',
   ],
   Water: [
     'Trust your intuition today — it is guiding you well.',
     'Take time to process your emotions through writing.',
     'A deep connection with someone may surprise you.',
     'Your empathy helps someone who needs it today.',
+    'Feelings you\'ve been avoiding deserve acknowledgment. Sit with them.',
+    'Your creative imagination is especially vivid. Use it.',
+    'A dream or daydream holds a message for you.',
+    'Emotional honesty transforms a relationship today.',
+    'Nurture yourself first — you can\'t pour from an empty cup.',
+    'Something beneath the surface is ready to be healed.',
+    'Your sensitivity is a strength, not a weakness. Honor it.',
+    'A moment of quiet reflection reveals exactly what you need.',
   ],
 };
 
-export function getDailyHoroscope(sunSign: ZodiacSign): string {
-  const info = getSignInfo(sunSign);
-  if (!info) return '';
-  const themes = HOROSCOPE_THEMES[info.element];
-  // Use date as seed for consistent daily result
+const SIGN_HOROSCOPES: Record<ZodiacSign, string[]> = {
+  Aries: [
+    'Your pioneering spirit opens new paths. Others follow your lead.',
+    'Impatience may surface — channel that restless energy into action.',
+    'A personal victory is close. Stay focused on your goal.',
+  ],
+  Taurus: [
+    'Something beautiful catches your attention today. Savor it.',
+    'Your steadfastness is noticed and appreciated by those around you.',
+    'Indulge in something that makes your senses come alive.',
+  ],
+  Gemini: [
+    'Your mind is buzzing with connections. Share one insight that excites you.',
+    'A conversation today could change the way you think about something.',
+    'Variety is your spice — try something new, even something small.',
+  ],
+  Cancer: [
+    'Home and family bring comfort today. Lean into what feels safe.',
+    'Your nurturing instincts are strong — remember to include yourself.',
+    'An old memory surfaces with a new lesson embedded in it.',
+  ],
+  Leo: [
+    'The spotlight finds you naturally today. Enjoy it without apology.',
+    'Your generosity of spirit inspires someone to be braver.',
+    'Creative self-expression is your medicine today.',
+  ],
+  Virgo: [
+    'The small details you notice today lead to a meaningful improvement.',
+    'Your desire to help is powerful — direct it where it matters most.',
+    'Order from chaos: organizing your space clears your mind.',
+  ],
+  Libra: [
+    'Balance comes from knowing when to give and when to receive.',
+    'A relationship dynamic shifts in your favor today.',
+    'Beauty in your environment lifts your mood. Create some.',
+  ],
+  Scorpio: [
+    'Intensity drives transformation today. Let it.',
+    'Something hidden comes to light — and it\'s exactly what you needed to see.',
+    'Your emotional depth gives you insight others miss.',
+  ],
+  Sagittarius: [
+    'Adventure calls in unexpected forms today. Say yes.',
+    'Your philosophical side has the answer to a practical question.',
+    'Expand your horizons — literally or metaphorically.',
+  ],
+  Capricorn: [
+    'Your discipline pays dividends today. Keep building.',
+    'An authority figure or mentor offers something valuable.',
+    'Long-term thinking gives you an edge over everyone else.',
+  ],
+  Aquarius: [
+    'An unconventional idea you have is more brilliant than you realize.',
+    'Community and friendship bring meaning today.',
+    'Your vision for the future becomes clearer.',
+  ],
+  Pisces: [
+    'Trust the feelings that don\'t have words yet.',
+    'Your creative well is deep today — draw from it freely.',
+    'Compassion flows naturally from you. It heals more than you know.',
+  ],
+};
+
+const MOON_HOROSCOPES: Record<MoonPhaseName, string[]> = {
+  'New Moon': [
+    'New beginnings are seeded in darkness. Set an intention today.',
+    'A clean slate presents itself. What will you write on it?',
+  ],
+  'Waxing Crescent': [
+    'Momentum is building. Keep watering what you planted.',
+    'Small efforts compound. Your consistency matters.',
+  ],
+  'First Quarter': [
+    'A decision point arrives. Choose action over hesitation.',
+    'Challenges today are invitations to grow stronger.',
+  ],
+  'Waxing Gibbous': [
+    'Refine your approach. Almost there — the details matter now.',
+    'Trust the work you\'ve already done. Adjust, don\'t abandon.',
+  ],
+  'Full Moon': [
+    'Emotions peak under the full moon. Let yourself feel it all.',
+    'Something reaches completion. Celebrate what you\'ve accomplished.',
+  ],
+  'Waning Gibbous': [
+    'Share what you\'ve learned. Your experience benefits others.',
+    'Gratitude shifts your perspective. Name three things.',
+  ],
+  'Last Quarter': [
+    'Release what no longer serves you. Space is opening up.',
+    'Forgiveness — of yourself or others — frees up energy.',
+  ],
+  'Waning Crescent': [
+    'Rest is productive. Give yourself permission to slow down.',
+    'Reflect on the cycle that\'s ending. What did it teach you?',
+  ],
+};
+
+/** Simple hash for consistent daily selection */
+function dailySeed(extra: number = 0): number {
   const today = new Date();
-  const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
-  const idx = seed % themes.length;
-  return themes[idx];
+  return today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate() + extra;
+}
+
+export function getDailyHoroscope(sunSign: ZodiacSign): {
+  element: string;
+  sign: string;
+  moon: string;
+  retrograde?: string;
+} {
+  const info = getSignInfo(sunSign);
+  if (!info) return { element: '', sign: '', moon: '' };
+
+  const elementThemes = HOROSCOPE_THEMES[info.element];
+  const signThemes = SIGN_HOROSCOPES[sunSign];
+  const moonPhase = getCurrentMoonPhase();
+  const moonThemes = MOON_HOROSCOPES[moonPhase.name];
+
+  const elementMsg = elementThemes[dailySeed() % elementThemes.length];
+  const signMsg = signThemes[dailySeed(7) % signThemes.length];
+  const moonMsg = moonThemes[dailySeed(13) % moonThemes.length];
+
+  const result: { element: string; sign: string; moon: string; retrograde?: string } = {
+    element: elementMsg,
+    sign: signMsg,
+    moon: moonMsg,
+  };
+
+  if (isMercuryRetrograde()) {
+    result.retrograde = RETROGRADE_PROMPTS[dailySeed(19) % RETROGRADE_PROMPTS.length];
+  }
+
+  return result;
 }

@@ -51,8 +51,9 @@ export default function AstroPrompt({ onUsePrompt }: Props) {
         </div>
         <button
           onClick={() => setDismissed(true)}
-          className="text-xs flex-shrink-0"
-          style={{ color: 'var(--th-faint)' }}
+          className="text-xs flex-shrink-0 hover:opacity-70 transition-opacity"
+          style={{ color: 'var(--th-muted)' }}
+          aria-label="Dismiss prompt"
         >
           ×
         </button>
@@ -63,8 +64,8 @@ export default function AstroPrompt({ onUsePrompt }: Props) {
             onUsePrompt(promptData.prompt);
             setDismissed(true);
           }}
-          className="font-mono-editorial px-3 py-1 border rounded-lg transition-opacity hover:opacity-70"
-          style={{ color: 'var(--th-accent)', borderColor: 'var(--th-accent)' }}
+          className="font-mono-editorial px-3 py-1.5 border-2 rounded-lg transition-all hover:opacity-80"
+          style={{ color: 'var(--th-accent)', borderColor: 'var(--th-accent)', background: 'color-mix(in srgb, var(--th-accent) 10%, transparent)' }}
         >
           Use as prompt
         </button>
