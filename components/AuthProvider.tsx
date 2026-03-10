@@ -43,6 +43,8 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       if (u) ensureProfile(u);
       setUser(u);
       setLoading(false);
+    }).catch(() => {
+      setLoading(false);
     });
 
     const { data: { subscription } } = onAuthStateChange((u) => {
