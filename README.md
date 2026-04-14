@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Diary App
 
-## Getting Started
+**A contextual journaling tool built around the question: what would journaling look like if it actually knew you?**
 
-First, run the development server:
+[Live App](https://diary-app-azure.vercel.app)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## The Problem
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Most journaling apps are blank pages. They offer no context, no connections, and no reason to come back. The longer you use them, the more entries you have — but the experience doesn't get richer. There's no compounding value.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Diary App explores what happens when you layer real context (mood, time, media, astrology, temporal awareness) into the journaling experience so that sustained use is actually rewarded.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Key Features and the Thinking Behind Them
 
-## Learn More
+**Birth Chart Engine**
+Uses real astronomical calculations (not lookup tables) to compute accurate natal charts from birth time and location. This was a deliberate technical decision — accuracy matters for users who take this seriously, and cutting corners here would undermine trust.
 
-To learn more about Next.js, take a look at the following resources:
+**Moon-Phase-Aware Writing Prompts**
+Journaling prompts shift with the lunar cycle. The insight is that temporal context can meaningfully shape UX — not every day should feel the same in a reflective tool.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Time Capsule Letters**
+Write letters to your future self that stay sealed until their reveal date. This is a retention mechanic disguised as a feature. It gives users a reason to come back on a specific date, creating natural re-engagement without push notifications.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Media Tracker**
+Links books, shows, and music to journal entries. Over time, this builds a map of what you were consuming alongside how you were feeling — the kind of connection most journaling tools never surface.
 
-## Deploy on Vercel
+## Product Thinking
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The core design principle was building compounding value: the longer you use it, the richer the experience gets. Every feature was evaluated through the lens of "does this make the 100th entry more valuable than the 10th?"
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The time capsule mechanic is the best example. It's delightful on its own, but it's also a retention strategy. Users create future touchpoints with the product every time they write one.
+
+## Stack
+
+Next.js 16 · TypeScript · Supabase · React · Vercel
+
+---
+
+Built by [Rachel McCarthy](https://rachelmccarthy.io)
